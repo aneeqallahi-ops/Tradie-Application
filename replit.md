@@ -102,6 +102,15 @@ Tables in `lib/db/src/schema/`:
 - **Start application** — Frontend Vite dev server: `PORT=5000 pnpm --filter @workspace/tradeledger-v2 run dev` (port 5000, webview)
 - **API Server** — Express backend: `PORT=8080 pnpm --filter @workspace/api-server run start` (port 8080, console)
 
+## Deployment Architecture
+In production, a single service handles everything:
+- **Build**: `pnpm --filter @workspace/tradeledger-v2 run build && pnpm --filter @workspace/api-server run build`
+- **Run**: `node --enable-source-maps artifacts/api-server/dist/index.mjs` (PORT=8080, NODE_ENV=production)
+- The Express API server serves static frontend files from `artifacts/tradeledger-v2/dist/public/` in production mode
+- All routes (`/`) handled by the API server artifact (`artifacts/api-server/.replit-artifact/artifact.toml`)
+- The tradeledger-v2 artifact has no production section (dev preview only) to avoid multi-service port conflicts
+- Health check: `GET /api/healthz`
+
 ## Development Commands
 ```bash
 pnpm install           # Install all dependencies

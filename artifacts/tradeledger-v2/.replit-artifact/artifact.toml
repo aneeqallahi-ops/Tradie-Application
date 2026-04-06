@@ -17,15 +17,6 @@ localPort = 23717
 [services.development]
 run = "pnpm --filter @workspace/tradeledger-v2 run dev"
 
-[services.production]
-build = [ "pnpm", "--filter", "@workspace/tradeledger-v2", "run", "build" ]
-publicDir = "artifacts/tradeledger-v2/dist/public"
-serve = "static"
-
-[[services.production.rewrites]]
-from = "/*"
-to = "/index.html"
-
 [services.env]
 PORT = "23717"
 BASE_PATH = "/tradeledger-v2/"
