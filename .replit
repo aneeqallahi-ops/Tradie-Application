@@ -54,6 +54,10 @@ localPort = 8080
 externalPort = 80
 
 [[ports]]
+localPort = 8089
+externalPort = 3002
+
+[[ports]]
 localPort = 23717
 externalPort = 3000
 
@@ -63,5 +67,5 @@ externalPort = 3001
 
 [deployment]
 deploymentTarget = "autoscale"
-run = ["node", "--enable-source-maps", "artifacts/api-server/dist/index.mjs"]
-build = ["bash", "-c", "pnpm --filter @workspace/tradeledger-v2 run build && pnpm --filter @workspace/api-server run build"]
+run = ["pnpm", "run", "start"]
+build = ["pnpm", "run", "build"]
