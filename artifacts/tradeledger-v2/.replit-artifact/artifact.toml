@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/tradeledger-v2/"
+title = "TradeLedger v2"
+version = "1.0.0"
+id = "artifacts/tradeledger-v2"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/tradeledger-v2/" ]
+localPort = 23717
+
+[services.development]
+run = "pnpm --filter @workspace/tradeledger-v2 run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/tradeledger-v2", "run", "build" ]
+publicDir = "artifacts/tradeledger-v2/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23717"
+BASE_PATH = "/tradeledger-v2/"

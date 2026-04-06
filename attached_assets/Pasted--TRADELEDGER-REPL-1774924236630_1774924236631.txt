@@ -1,0 +1,1095 @@
+================================================================================
+TRADELEDGER — REPLIT AGENT BUILD PROMPT
+Full-stack MVP for Australian sole trader tradies
+================================================================================
+
+READ THIS ENTIRE PROMPT BEFORE WRITING ANY CODE. This is a complete product
+specification. Build it section by section in the order listed.
+
+--------------------------------------------------------------------------------
+SECTION 1 — WHAT YOU ARE BUILDING
+--------------------------------------------------------------------------------
+
+Build a full-stack web application called TradeLedger. It is a business
+management and tax compliance platform designed specifically for Australian sole
+trader tradies (plumbers, electricians, carpenters, etc.).
+
+The product solves three specific problems:
+1. Financial leakage — money not tracked, invoices not matched to payments
+2. Admin burnout — hours wasted on quoting, chasing payments, data entry
+3. The tax surprise — tradies don't know their real tax liability until it's too
+   late
+
+The application has five core screens accessible via bottom navigation:
+Home (Dashboard), Quotes, Jobs, Expenses, and Settings.
+
+It also has one critical overlay panel accessible from the Home screen:
+the "What You Actually Keep" financial calculator.
+
+--------------------------------------------------------------------------------
+SECTION 2 — TECH STACK (USE EXACTLY THIS)
+--------------------------------------------------------------------------------
+
+Frontend: React with React Router for navigation
+Backend: Node.js with Express
+Database: PostgreSQL (use Replit's built-in database)
+Auth: Replit Auth (built-in) for user authentication
+Styling: Tailwind CSS for all styling
+File uploads: Multer for receipt photo uploads
+PDF generation: jsPDF for quote and invoice PDF generation
+State management: React Context API (no Redux needed for MVP)
+API: RESTful JSON API between frontend and backend
+
+Do NOT use: Vue, Angular, Next.js, Prisma, GraphQL, or any CSS-in-JS library.
+Do NOT use localStorage for any persistent data — use the PostgreSQL database.
+
+--------------------------------------------------------------------------------
+SECTION 3 — VISUAL DESIGN SYSTEM
+--------------------------------------------------------------------------------
+
+Apply these design decisions consistently across every screen.
+The aesthetic is premium-minimal: generous whitespace, restrained colour use,
+and clean typography. Reference: Dreelio.com.
+
+Primary colour: #1A1A1A (near-black) — used for primary buttons and key text
+Accent colour: #E8610A (orange) — used sparingly: active nav tab, status
+  badges, urgent alerts only. Never as a button background.
+Background: #F2EDE8 (warm cream) — main app background
+Card background: #FFFFFF (white) — border-radius 16px, no border,
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06) only. Cards feel like they float.
+Secondary surface: #F7F4F1 (slightly warmer than background) — used for
+  input fields, inactive tabs, secondary cards
+Success colour: #2D6A4F (muted green) — paid, complete states
+Warning colour: #B45309 (muted amber) — pending states
+Danger colour: #B91C1C (muted red) — overdue, error states
+
+Typography:
+- All headings: font-weight 600 (not 700 — avoid heavy), colour #1A1A1A
+- Body text: font-weight 400, colour #1A1A1A, line-height 1.6
+- Subtext/labels: font-weight 400, colour #9A9A9A, font-size 13px
+- Large numbers (dashboard stats): font-weight 700, colour #1A1A1A
+- Use Inter or system-ui font stack throughout
+
+Buttons:
+- Primary button: background #1A1A1A, text #FFFFFF, border-radius 100px
+  (fully rounded / pill shape), padding 14px 28px, font-weight 500,
+  font-size 15px. Full width on mobile.
+- Secondary button: background #FFFFFF, border 1.5px solid #E0DDD9,
+  text #1A1A1A, same border-radius. Hover: border colour #1A1A1A.
+- Destructive / ghost: background transparent, text #9A9A9A, no border.
+- No orange buttons anywhere except the single "BAS due soon" urgent CTA.
+
+Inputs:
+- Background: #F7F4F1, border: none, border-radius 12px, padding 14px 16px
+- Focus state: background #FFFFFF, box-shadow 0 0 0 2px #1A1A1A inset
+- Label above input: font-size 13px, colour #9A9A9A, font-weight 500,
+  margin-bottom 6px
+- Placeholder text: colour #BBBBBB
+
+Cards:
+- Background: #FFFFFF, border-radius 16px, padding 20px
+- Shadow: 0 1px 3px rgba(0,0,0,0.06) — extremely subtle
+- No coloured card backgrounds except: the primary stat card on the home
+  screen which uses #1A1A1A background with white text
+
+Status badges / pills:
+- Small pill: border-radius 100px, font-size 12px, font-weight 500,
+  padding 4px 10px, uppercase tracking-wide
+- COMPLETE: background #DCFCE7, text #166534
+- IN PROGRESS: background #FEF9C3, text #854D0E
+- QUOTE: background #EFF6FF, text #1D4ED8
+- OVERDUE: background #FEE2E2, text #991B1B
+- PAID: background #F0FDF4, text #166534
+
+Bottom navigation bar:
+- Background: #FFFFFF, border-top: 1px solid #F0EDE8, height 64px
+- Inactive tab: icon + label in #BBBBBB
+- Active tab: icon + label in #E8610A (orange — the one place accent is used)
+- No background fill on active tab — just colour change
+
+Section headings inside screens:
+- font-size 22px, font-weight 600, colour #1A1A1A
+- Subheadings: font-size 15px, font-weight 500, colour #9A9A9A,
+  letter-spacing 0.03em, text-transform uppercase
+
+Dividers: 1px solid #F0EDE8 — very light, almost invisible
+
+Spacing system: use multiples of 8px. Standard card gap: 12px.
+Standard screen horizontal padding: 20px.
+
+Mobile-first: design for 390px wide screen. One-handed operation.
+Minimum tap target: 48px height on all interactive elements.
+
+The overall feel: if it looks busy, remove something. If a colour feels
+strong, mute it. Whitespace is a feature, not empty space.
+
+--------------------------------------------------------------------------------
+SECTION 4 — DATABASE SCHEMA
+--------------------------------------------------------------------------------
+
+Create these PostgreSQL tables:
+
+TABLE users:
+  id SERIAL PRIMARY KEY
+  replit_user_id VARCHAR(255) UNIQUE NOT NULL
+  business_name VARCHAR(255)
+  abn VARCHAR(20)
+  gst_registered BOOLEAN DEFAULT true
+  state VARCHAR(10) DEFAULT 'VIC'
+  email VARCHAR(255)
+  phone VARCHAR(20)
+  logo_url TEXT
+  hourly_rate DECIMAL(10,2) DEFAULT 85.00
+  default_markup_percent DECIMAL(5,2) DEFAULT 20.00
+  profit_first_tax_percent DECIMAL(5,2) DEFAULT 15.00
+  profit_first_expenses_percent DECIMAL(5,2) DEFAULT 10.00
+  created_at TIMESTAMP DEFAULT NOW()
+
+TABLE clients:
+  id SERIAL PRIMARY KEY
+  user_id INTEGER REFERENCES users(id)
+  name VARCHAR(255) NOT NULL
+  type VARCHAR(20) DEFAULT 'residential'  -- 'residential' or 'commercial'
+  email VARCHAR(255)
+  phone VARCHAR(20)
+  address TEXT
+  abn VARCHAR(20)
+  created_at TIMESTAMP DEFAULT NOW()
+
+TABLE quotes:
+  id SERIAL PRIMARY KEY
+  user_id INTEGER REFERENCES users(id)
+  client_id INTEGER REFERENCES clients(id)
+  quote_number VARCHAR(50)
+  title VARCHAR(255) NOT NULL
+  description TEXT
+  state VARCHAR(10) NOT NULL
+  status VARCHAR(30) DEFAULT 'draft'
+  -- status values: draft, sent, viewed, accepted, declined, converted
+  subtotal DECIMAL(10,2) DEFAULT 0
+  gst_amount DECIMAL(10,2) DEFAULT 0
+  total DECIMAL(10,2) DEFAULT 0
+  deposit_percent DECIMAL(5,2) DEFAULT 0
+  deposit_amount DECIMAL(10,2) DEFAULT 0
+  deposit_compliant BOOLEAN DEFAULT true
+  travel_km DECIMAL(8,2) DEFAULT 0
+  travel_cost DECIMAL(10,2) DEFAULT 0
+  internal_notes TEXT
+  sent_at TIMESTAMP
+  viewed_at TIMESTAMP
+  accepted_at TIMESTAMP
+  valid_until DATE
+  created_at TIMESTAMP DEFAULT NOW()
+
+TABLE quote_line_items:
+  id SERIAL PRIMARY KEY
+  quote_id INTEGER REFERENCES quotes(id) ON DELETE CASCADE
+  description VARCHAR(500) NOT NULL
+  quantity DECIMAL(10,3) DEFAULT 1
+  unit_cost DECIMAL(10,2) DEFAULT 0
+  markup_percent DECIMAL(5,2) DEFAULT 20
+  unit_price DECIMAL(10,2) DEFAULT 0
+  line_total DECIMAL(10,2) DEFAULT 0
+  is_internal BOOLEAN DEFAULT false
+  sort_order INTEGER DEFAULT 0
+
+TABLE jobs:
+  id SERIAL PRIMARY KEY
+  user_id INTEGER REFERENCES users(id)
+  client_id INTEGER REFERENCES clients(id)
+  quote_id INTEGER REFERENCES quotes(id)
+  job_number VARCHAR(50)
+  title VARCHAR(255) NOT NULL
+  description TEXT
+  state VARCHAR(10)
+  status VARCHAR(30) DEFAULT 'active'
+  -- status values: active, in_progress, back_costing, complete, invoiced, paid
+  scheduled_date DATE
+  completed_date DATE
+  subtotal DECIMAL(10,2) DEFAULT 0
+  gst_amount DECIMAL(10,2) DEFAULT 0
+  total DECIMAL(10,2) DEFAULT 0
+  amount_paid DECIMAL(10,2) DEFAULT 0
+  created_at TIMESTAMP DEFAULT NOW()
+
+TABLE invoices:
+  id SERIAL PRIMARY KEY
+  user_id INTEGER REFERENCES users(id)
+  job_id INTEGER REFERENCES jobs(id)
+  client_id INTEGER REFERENCES clients(id)
+  invoice_number VARCHAR(50)
+  type VARCHAR(20) DEFAULT 'full'  -- 'deposit', 'progress', 'full'
+  status VARCHAR(20) DEFAULT 'unpaid'  -- 'unpaid', 'paid', 'overdue'
+  subtotal DECIMAL(10,2) DEFAULT 0
+  gst_amount DECIMAL(10,2) DEFAULT 0
+  total DECIMAL(10,2) DEFAULT 0
+  amount_paid DECIMAL(10,2) DEFAULT 0
+  due_date DATE
+  paid_at TIMESTAMP
+  payment_method VARCHAR(50)
+  stripe_payment_link TEXT
+  viewed_at TIMESTAMP
+  sent_at TIMESTAMP
+  reminder_1_sent_at TIMESTAMP
+  reminder_2_sent_at TIMESTAMP
+  sopa_text TEXT
+  created_at TIMESTAMP DEFAULT NOW()
+
+TABLE expenses:
+  id SERIAL PRIMARY KEY
+  user_id INTEGER REFERENCES users(id)
+  job_id INTEGER REFERENCES jobs(id)
+  category VARCHAR(100) NOT NULL
+  -- category values: 'tools_equipment', 'vehicle_fuel', 'vehicle_other',
+  -- 'protective_clothing', 'phone_internet', 'subcontractor_payments',
+  -- 'licences_subscriptions', 'other_business'
+  vendor VARCHAR(255)
+  description TEXT
+  amount DECIMAL(10,2) NOT NULL
+  gst_claimable DECIMAL(10,2) DEFAULT 0
+  is_gst_claimable BOOLEAN DEFAULT true
+  receipt_url TEXT
+  expense_date DATE NOT NULL
+  financial_year VARCHAR(10)
+  created_at TIMESTAMP DEFAULT NOW()
+
+TABLE vehicle_trips:
+  id SERIAL PRIMARY KEY
+  user_id INTEGER REFERENCES users(id)
+  trip_date DATE NOT NULL
+  start_location VARCHAR(255)
+  end_location VARCHAR(255)
+  distance_km DECIMAL(8,2) NOT NULL
+  purpose VARCHAR(50) DEFAULT 'job_site'
+  -- purpose values: 'job_site', 'supplier', 'client_meeting', 'other'
+  job_id INTEGER REFERENCES jobs(id)
+  is_business BOOLEAN DEFAULT true
+  notes TEXT
+  created_at TIMESTAMP DEFAULT NOW()
+
+TABLE subcontractors:
+  id SERIAL PRIMARY KEY
+  user_id INTEGER REFERENCES users(id)
+  name VARCHAR(255) NOT NULL
+  abn VARCHAR(20)
+  address TEXT
+  email VARCHAR(255)
+  phone VARCHAR(20)
+  total_paid_this_fy DECIMAL(10,2) DEFAULT 0
+  created_at TIMESTAMP DEFAULT NOW()
+
+TABLE subcontractor_payments:
+  id SERIAL PRIMARY KEY
+  subcontractor_id INTEGER REFERENCES subcontractors(id)
+  expense_id INTEGER REFERENCES expenses(id)
+  amount DECIMAL(10,2) NOT NULL
+  payment_date DATE
+  financial_year VARCHAR(10)
+
+TABLE notifications:
+  id SERIAL PRIMARY KEY
+  user_id INTEGER REFERENCES users(id)
+  type VARCHAR(50)
+  message TEXT
+  is_read BOOLEAN DEFAULT false
+  action_url TEXT
+  created_at TIMESTAMP DEFAULT NOW()
+
+--------------------------------------------------------------------------------
+SECTION 5 — AUTHENTICATION & ONBOARDING
+--------------------------------------------------------------------------------
+
+Use Replit Auth for login. When a user logs in for the first time (no record
+in the users table), redirect them to an onboarding flow before showing the app.
+
+ONBOARDING SCREEN — 3 steps, show a progress indicator (Step 1 of 3).
+Style: clean white card centred on the cream background, generous padding,
+pill-shaped continue buttons in #1A1A1A.
+
+Step 1 — Business Details:
+  - Input: Business name (required)
+  - Input: ABN — 11 digits, format as XX XXX XXX XXX while typing
+  - Toggle: Are you registered for GST? (default: Yes)
+  - Dropdown: Your state — options: VIC, NSW, QLD, WA, SA, TAS, ACT, NT
+  - "Continue" primary button
+
+Step 2 — Your Trade:
+  - Input: Default hourly rate (pre-filled: $85.00)
+  - Input: Default materials markup % (pre-filled: 20%)
+  - Input: Phone number
+  - Input: Email address
+  - "Continue" primary button
+
+Step 3 — Tax Setup:
+  - Heading: "Set aside money for tax automatically"
+  - Body text: "We'll remind you to set aside this percentage from each payment
+    so the ATO never surprises you."
+  - Slider: Tax set-aside % — range 10–30%, default 15%,
+    label shows "15% of every dollar goes to tax"
+  - Slider: Expenses float % — range 5–20%, default 10%
+  - Info box (background #F7F4F1, border-radius 12px): "Based on a tradie
+    earning $100,000/year, 15% = $15,000 set aside for tax. This is an
+    estimate — your BAS agent confirms the real figure."
+  - "Finish Setup" primary button — saves user record and goes to Home screen
+
+--------------------------------------------------------------------------------
+SECTION 6 — HOME SCREEN (DASHBOARD)
+--------------------------------------------------------------------------------
+
+The Home screen is the most important screen. Build it with extreme care.
+
+HEADER:
+  - Top left: "TradeLedger" in #1A1A1A, font-weight 600, font-size 20px
+  - Top right: Bell icon (#9A9A9A) with small #E8610A dot if unread
+    notifications exist
+
+FINANCIAL YEAR SELECTOR:
+  Small pill selector below header: background #F7F4F1, border-radius 100px,
+  showing current financial year (e.g. "FY 2024–25") with left/right chevrons.
+  All figures filter to the selected financial year.
+
+ROW 1 — STAT CARDS (2 cards side by side, equal width, 12px gap):
+  Card 1 — "This Month" (background #1A1A1A, text white):
+    - Label: "This month" — font-size 13px, colour rgba(255,255,255,0.6)
+    - Large number: total invoiced this calendar month — font-size 28px,
+      font-weight 700, white
+    - Subtext: green arrow + "12.5% from last month" if up, red if down,
+      font-size 12px
+  Card 2 — "Pending Quotes" (white card):
+    - Label: "Pending quotes" — 13px, #9A9A9A
+    - Large number: count — font-size 28px, font-weight 700, #1A1A1A
+    - Tapping navigates to Quotes screen
+
+ROW 2 — STAT CARDS (2 cards side by side):
+  Card 3 — "Active Jobs" (white card):
+    - Count of jobs with status 'active' or 'in_progress'
+    - Tapping navigates to Jobs screen
+  Card 4 — "Unpaid" (white card, left border 3px solid #B91C1C if count > 0):
+    - Count of unpaid invoices
+    - Amount in #B91C1C: "$X outstanding"
+    - Tapping navigates to filtered invoices list
+
+THE "WHAT YOU ACTUALLY KEEP" PANEL:
+  Large tappable white card with:
+  - Small label: "WHAT YOU ACTUALLY KEEP" — 11px, #9A9A9A, uppercase,
+    letter-spacing 0.08em
+  - Large number: estimated take-home — font-size 36px, font-weight 700,
+    #1A1A1A
+  - Subtitle: "Estimated · FY 2024–25" — 13px, #9A9A9A
+  - Right chevron icon in #BBBBBB
+  - Left border accent: 3px solid #E8610A
+
+  When tapped, open a bottom sheet (slides up, covers 88% of screen,
+  background white, top border-radius 24px, drag handle at top):
+
+  PANEL HEADER: "Your Money, Simplified" — font-size 18px, font-weight 600
+    X close button top right
+
+  SECTION — Income:
+    Row: "Total invoiced (FY)" — amount right aligned
+    Row: "GST collected (÷11)" — minus amount right aligned, colour #B91C1C
+    Row: "Your actual income" — bold, #1A1A1A
+    Divider: 1px solid #F0EDE8
+
+  SECTION — Deductions:
+    Row: "Business expenses" — minus amount
+    Row: "Vehicle deduction" — minus amount. If no logbook: shows $0 and
+      small orange text "Set up logbook →" that links to logbook screen
+    Row: "Taxable income" — bold, #1A1A1A
+    Divider
+
+  SECTION — Tax Estimate:
+    Row: "Estimated income tax" — minus amount
+      Small info icon that expands the marginal rate breakdown:
+        $0–$18,200: 0% = $0
+        $18,201–$45,000: 19% = $X
+        $45,001–$120,000: 32.5% = $X
+        Above $120,000: 37% = $X
+        Medicare levy 2%: $X
+    Row: "Voluntary super" — toggle switch. When ON shows sub-input:
+      "Set-aside %: [10]%" adjustable by user
+    Divider
+
+  SECTION — Result:
+    Label: "You keep approximately" — 13px, #9A9A9A, centered
+    Very large number: "$XX,XXX" — font-size 48px, font-weight 700,
+      #1A1A1A, centered
+    Disclaimer: "Estimate only. Your BAS agent confirms real figures." —
+      12px, #9A9A9A, centered
+
+  SECTION — Profit First Allocation:
+    Label: "Of every dollar you earn" — 13px, #9A9A9A uppercase
+    Three horizontal pill bars (full width, stacked):
+      Tax bar: width = tax%, background #FEE2E2, label "{X}% Tax" dark red
+      Expenses bar: background #FEF9C3, label "{X}% Expenses" dark amber
+      Yours bar: background #DCFCE7, label "{X}% Yours" dark green
+
+  SECTION — BAS STATUS:
+    Card (background #F7F4F1, border-radius 12px):
+      "Q{N} BAS due {date} — {N} days away" — font-weight 600
+      "Estimated GST payable: $X,XXX" — #9A9A9A
+      If within 28 days: replace card background with #FFF3E0 and show
+        button: "Lodge for $79" — pill button, background #E8610A, white text
+          (this is the ONE place the orange button appears)
+
+  CLOSE: "Done" — full-width primary black pill button at bottom
+
+QUICK ACTIONS ROW (4 equal buttons, icon above label):
+  Buttons: background #F7F4F1, border-radius 12px, padding 14px 8px
+  Icons and labels in #1A1A1A, font-size 12px
+  1. New Quote — document icon
+  2. Invoice — receipt icon
+  3. Scan — camera icon
+  4. Log Trip — car icon
+
+BAS COUNTDOWN WIDGET:
+  White card, small:
+  - "BAS Countdown" label — 13px, #9A9A9A uppercase
+  - Thin progress bar (background #F0EDE8, fill #1A1A1A) showing quarter
+    progress
+  - "{N} days until {date}" — font-weight 600
+
+RECENT ACTIVITY:
+  Label: "Recent Activity" — font-weight 600, font-size 16px
+  "{N} jobs" right aligned — 13px, #9A9A9A
+  List of 5 most recent jobs, each row:
+    - Left: job title bold + client name grey below
+    - Right: status pill + dollar amount below it
+    - Thin divider between rows (no card wrapping, flat list style)
+  Tapping any row navigates to job detail
+
+--------------------------------------------------------------------------------
+SECTION 7 — QUOTES SCREEN
+--------------------------------------------------------------------------------
+
+HEADER: "Quotes" — font-size 22px, font-weight 600. Search icon top right.
+
+SUMMARY ROW (2 stat pills side by side):
+  Each pill: background #F7F4F1, border-radius 100px, padding 8px 16px
+  - Pending: clock icon + count + "Pending"
+  - Accepted: tick icon + count + "Accepted"
+
+SECTION LABEL: "AWAITING RESPONSE" — 11px, #9A9A9A, uppercase,
+  letter-spacing 0.08em, "{N} jobs" right aligned
+
+Quotes list — flat rows with dividers (not cards):
+  Each row:
+  - Job title bold + client name grey below
+  - State badge (tiny pill) and date sent — 12px, #9A9A9A
+  - Total amount right aligned bold
+  - If viewed: "Opened {date} at {time}" — 12px, #9A9A9A italic
+  - Status pill right aligned
+  Right chevron
+
+SECTION LABEL: "READY TO START" — same style
+
+FLOATING ACTION BUTTON:
+  Circle 56px, background #1A1A1A, plus icon white, fixed bottom right
+  (above nav bar), shadow: 0 4px 12px rgba(0,0,0,0.15)
+
+NEW QUOTE SCREEN:
+  Back arrow top left. "Draft" label top right in #9A9A9A.
+  Title: "New Quote" — font-size 22px, font-weight 600
+
+  All form sections separated by dividers (not cards within cards).
+  Section labels: uppercase, 11px, #9A9A9A, letter-spacing 0.08em
+
+  SECTION — JOB DETAILS:
+    Client dropdown (background #F7F4F1 input style)
+    "+ New Client" text link below — #E8610A, font-size 13px
+      Opens inline mini-form: Name, Type toggle (Residential / Commercial),
+      Phone, Email
+    Job Title input
+    Description textarea
+    State dropdown (pre-filled from user profile)
+    Valid Until date picker (default 30 days from today)
+
+  SECTION — LINE ITEMS:
+    "+ Add Item" right aligned — #E8610A, font-size 13px
+    Each line item:
+      Description input (full width, #F7F4F1 background)
+      Three inputs in a row: Qty | Unit Cost | Markup %
+      Line total right aligned, font-weight 600
+      "Internal only" toggle — if on, hidden from client PDF
+      Trash icon to remove — #9A9A9A
+
+  SECTION — TRAVEL:
+    Toggle: "Add travel cost"
+    When on: Distance (km) input + auto-calculated cost at $0.88/km shown
+      below in 13px grey text
+
+  SECTION — SUMMARY:
+    Subtotal, GST (10%), Total — right aligned, total bold and larger
+
+  SECTION — DEPOSIT:
+    Deposit % input
+    Auto-calculated deposit amount shown below
+    COMPLIANCE CHECK card (border-radius 12px):
+      Green (background #DCFCE7): "Deposit compliant — {state} limit: {X}%"
+      Red (background #FEE2E2): "Exceeds {state} legal limit. Max: {X}%"
+        Disables send button when red.
+
+  SECTION — INTERNAL NOTES:
+    Textarea — #F7F4F1 background
+
+  SOPA NOTICE:
+    Small card, background #F7F4F1, border-radius 12px, padding 12px:
+    "Security of Payment Act notice auto-appended. This protects your
+    right to payment." — 13px, #9A9A9A
+
+  DUAL VIEW TOGGLE:
+    Segmented control: "Internal" | "Client Preview" — background #F7F4F1,
+    active segment: background #1A1A1A, text white, border-radius 8px
+
+  BOTTOM BUTTON: "Send Quote · $X,XXX" — full width black pill button
+
+  QUOTE DETAIL SCREEN:
+    Client view format. Action row:
+    "Convert to Job" (primary black pill) | "Edit" (secondary) |
+    "Mark Declined" (ghost grey)
+    Timeline below: Created → Sent → Viewed → Accepted/Declined
+    Each step: small circle dot, date/time in grey
+
+--------------------------------------------------------------------------------
+SECTION 8 — JOBS SCREEN
+--------------------------------------------------------------------------------
+
+HEADER: "Jobs" — search icon top right
+
+TAB BAR (horizontally scrollable, pill tabs):
+  All | Quotes | Active | In Progress | Complete | Paid
+  Active tab: background #1A1A1A, text white, border-radius 100px
+  Inactive: text #9A9A9A
+
+Job list — flat rows with dividers:
+  Each row:
+  - Job title bold + client name grey
+  - State + scheduled date — 12px, #9A9A9A
+  - Status pill right aligned + dollar amount below it
+  - If In Progress: thin progress bar below title (background #F0EDE8,
+    fill #1A1A1A)
+
+JOB DETAIL SCREEN:
+  Header: job title, font-size 20px, font-weight 600. Status pill beside it.
+
+  TAB BAR: Overview | Costs | Invoices
+  (same pill tab style as above)
+
+  OVERVIEW TAB:
+    Client card (white, border-radius 16px):
+      Client name bold. Phone and email as tappable links in #E8610A.
+    Details section: state, date, description — flat rows with dividers
+
+    Action row:
+      "Create Invoice" (primary black pill) | "Mark Complete" (secondary)
+
+  COSTS TAB:
+    QUOTED section label + list of quoted line items with amounts
+    Quoted total bold
+
+    Divider
+
+    ACTUAL section label + list of attached expenses
+    "+ Attach Expense" text link — #E8610A
+    Actual total bold
+
+    MARGIN CARD (white, border-radius 16px):
+      "Quoted $X · Actual $X · Margin $X ({%})"
+      Progress bar: #DCFCE7 fill for profit portion, #FEE2E2 for cost portion
+      Warning if margin < 10%: small amber pill "Low margin"
+      Warning if margin < 0%: small red pill "Over budget"
+
+  INVOICES TAB:
+    List of invoices for this job
+    Each: invoice number, amount, status pill, due date
+    "Create Invoice" black pill button at bottom
+
+NEW INVOICE SCREEN:
+  Job selection dropdown (if not coming from a job)
+  Invoice type segmented control: Full | Deposit | Progress
+  Due date picker (default 14 days)
+  Subtotal, GST, Total summary
+  Payment section: Stripe link input (manual URL entry for now)
+  "Create Invoice" black pill button
+
+INVOICE DETAIL:
+  Formatted invoice view (clean, document style):
+    Business name, ABN, logo top right
+    Client details
+    Invoice number, date, due date
+    Line items in a clean table
+    Subtotal, GST, Total
+    SOPA text in small grey text at bottom
+  Action row:
+    "Mark as Paid" (primary) | "Send Reminder" (secondary) |
+    "Download PDF" (ghost)
+  Mark as Paid: shows payment method dropdown + date picker
+
+--------------------------------------------------------------------------------
+SECTION 9 — EXPENSES SCREEN
+--------------------------------------------------------------------------------
+
+HEADER: "Expenses"
+
+SUMMARY ROW (3 small stat cards, equal width):
+  - This month: $X
+  - GST claimable: $X
+  - This FY: $X
+  Each: white card, border-radius 12px, label 11px grey uppercase, number bold
+
+TPAR ALERT BANNER (show only if subcontractor expenses exist):
+  Background #FFF3E0, border-radius 12px, border-left 3px solid #E8610A:
+  "You have paid {N} subcontractors $X this FY. TPAR due 28 Aug."
+  "Review →" text link right aligned in #E8610A
+
+TAB BAR: All | By Category | By Job (pill tabs)
+
+EXPENSE LIST — grouped by month when "All" tab:
+  Month label: uppercase, 11px, #9A9A9A
+  Each expense — flat row:
+    Left: category emoji + vendor name bold + date grey below
+    Right: amount bold + GST amount grey below
+    If photo attached: small square thumbnail far left (32px)
+    If job attached: tiny job name tag below vendor name
+
+FLOATING ACTION BUTTON: camera icon, #1A1A1A circle
+
+EXPENSE CAPTURE SCREEN:
+  Title: "Capture Expense"
+
+  CAMERA AREA:
+    Large rounded rectangle (border-radius 16px), background #F7F4F1:
+    "Tap to photograph receipt" centred, camera icon above
+    "Choose from library" text link below — 13px, #9A9A9A
+    After photo: thumbnail fills the area with "Retake" pill button overlay
+
+  EXTRACTION STATE:
+    Loading: spinner + "Reading your receipt..." — 13px, #9A9A9A
+    After: banner "Please review and confirm" — background #F7F4F1, 12px
+
+  FORM:
+    Vendor input, Date picker, Amount input
+    GST toggle (default ON): "GST included · ${amount/11} claimable"
+
+  CATEGORY GRID (2-column grid of 8 tappable cards):
+    Each card: white, border-radius 12px, padding 16px, centered
+    Icon (emoji, 24px) above label (13px, font-weight 500)
+    Selected state: border 2px solid #1A1A1A, background white
+    Unselected: background #F7F4F1
+    Categories:
+      🔧 Tools & Equipment
+      ⛽ Vehicle — Fuel
+      🚗 Vehicle — Other
+      👷 Protective Clothing
+      📱 Phone & Internet
+      👤 Subcontractor Payment
+      📋 Licences & Subscriptions
+      📦 Other Business
+
+  SUBCONTRACTOR PROMPT (if "Subcontractor Payment" selected):
+    Card slides in below category grid, background #F7F4F1, border-radius 12px:
+    "Add to TPAR register?" heading
+    Contractor name input + ABN input
+    Toggle: "Add to TPAR" (default ON)
+    Note: "ATO requires annual reporting of all contractor payments." 12px grey
+
+  JOB ATTACHMENT:
+    Dropdown: "Attach to a job (optional)"
+
+  SAVE BUTTON: "Save Expense" — full width black pill button
+
+--------------------------------------------------------------------------------
+SECTION 10 — VEHICLE LOGBOOK
+--------------------------------------------------------------------------------
+
+Access via "Log Trip" quick action on Home or Expenses → Logbook tab.
+
+LOGBOOK HOME SCREEN:
+  Header: "Vehicle Logbook"
+
+  IF NO LOGBOOK STARTED — empty state:
+    Centred: 🚗 emoji large, heading "Start your 12-week logbook",
+    body text explaining ATO logbook method benefit,
+    "Start Logbook" black pill button
+    Setup form (inline or new screen):
+      Vehicle make and model input
+      Odometer reading input
+      Note: "Your 12-week period starts today"
+
+  IF LOGBOOK ACTIVE:
+    Progress card (white, left border 3px solid #E8610A):
+      "Week {N} of 12" — font-weight 600
+      Thin progress bar, {N} trips this week
+      "{N} days remaining"
+
+    STATS ROW (3 small cards):
+      Total km | Business km | Business %
+
+    DEDUCTION CARD (white):
+      "Projected annual deduction"
+      Large number: "$X,XXX" — font-size 32px, font-weight 700
+      "Estimated tax saving: $X" — 13px, #2D6A4F (green), font-weight 500
+      Note: 13px, #9A9A9A
+
+  LOG TRIP BUTTON: "Log a Trip" — black pill button, full width
+
+  LOG TRIP FORM:
+    Date picker (default today)
+    Toggle: "Business" (default) | "Personal"
+    Start location input + End location input
+    Distance (km) input — note below: "Round trip = {km×2} km"
+    Purpose dropdown:
+      To job site | To supplier | To client meeting | Return journey | Other
+    Job link dropdown (optional)
+    Notes input (optional)
+    "Save Trip" black pill button
+
+  TRIP LIST:
+    Grouped by week, flat rows with dividers:
+    Date | purpose icon | start → end | km | job tag if linked
+
+  EXPORT: "Export Logbook PDF" — secondary pill button
+
+--------------------------------------------------------------------------------
+SECTION 11 — SETTINGS SCREEN
+--------------------------------------------------------------------------------
+
+HEADER:
+  Avatar circle (initials, background #1A1A1A, text white) left
+  Business name bold + ABN below in grey
+
+SECTIONS — separated by dividers, flat row list style:
+
+ACCOUNT section label (uppercase 11px grey):
+  Profile row — chevron right
+  Business Details row — chevron right
+  Payment Settings row — Stripe + Zeller instructions — chevron right
+
+PREFERENCES section label:
+  Default hourly rate — right-aligned value + chevron
+  Default markup % — right-aligned value + chevron
+  Tax set-aside % — right-aligned value + chevron
+  Expenses float % — right-aligned value + chevron
+  Default quote validity — right-aligned value + chevron
+  Default payment terms — right-aligned value + chevron
+
+COMPLIANCE section label:
+  Subcontractor Register — chevron
+  TPAR Status — "{N} contractors · $X total" right aligned — chevron
+  Active State — state name right aligned — chevron
+
+DATA section label:
+  Export all data (CSV) — chevron
+  Export logbook PDF — chevron
+
+LOGOUT: full-width ghost button at bottom, text #9A9A9A
+
+SUBCONTRACTOR REGISTER SCREEN:
+  List of subcontractors — flat rows:
+    Name bold + ABN grey + total paid this FY right aligned
+    Green tick if ABN valid / red warning if missing
+  "Add Subcontractor" black pill button at bottom
+  Footer note: "TPAR due 28 August. Report all contractors paid this FY."
+
+--------------------------------------------------------------------------------
+SECTION 12 — NOTIFICATIONS SYSTEM
+--------------------------------------------------------------------------------
+
+Store notifications in the notifications table defined in Section 4.
+
+Generate notifications automatically for:
+
+1. QUOTE_NOT_RESPONDED (3 days after sent_at, if still status 'sent'):
+   "Sarah Mitchell hasn't responded to your Kitchen quote ($730).
+    Follow up now?"
+
+2. INVOICE_OVERDUE (1 day after due_date, if status 'unpaid'):
+   "Invoice #INV-004 for James Chen ($2,450) is overdue. Send a reminder?"
+
+3. BAS_28_DAYS (28 days before BAS due date):
+   "Your Q{N} BAS is due in 28 days. Estimated GST payable: $X,XXX.
+    Lodge with a BAS agent for $79."
+
+4. BAS_7_DAYS (7 days before BAS due date):
+   "BAS due in 7 days. Your estimated GST liability is $X,XXX."
+
+5. TPAR_REMINDER (1 July each year):
+   "New financial year. Your TPAR for FY {year} is due 28 August.
+    You paid {N} contractors last year."
+
+6. LOGBOOK_WEEKLY (if logbook active and no trips in 7 days):
+   "Your logbook hasn't recorded any trips this week. Don't break the
+    12-week chain."
+
+Bell icon: orange dot when unread notifications exist.
+Tapping opens bottom sheet list (newest first, white sheet, drag handle).
+Tapping a notification marks it read and navigates to action_url.
+Each notification row: message text + time ago right aligned + unread dot.
+
+--------------------------------------------------------------------------------
+SECTION 13 — GST AND FINANCIAL CALCULATIONS
+--------------------------------------------------------------------------------
+
+All financial calculations must use these exact formulas:
+
+GST calculation (for registered users):
+  GST collected = invoice_total ÷ 11
+  (GST-inclusive price contains GST = price × 10/110)
+
+GST on expenses (claimable input tax credits):
+  GST on expense = expense_amount ÷ 11
+  (Only if is_gst_claimable = true)
+
+Net GST payable (for BAS):
+  Net GST = sum(GST collected on all invoices in quarter)
+           minus sum(GST claimable on all expenses in quarter)
+
+Income tax estimate (2024-25 Australian individual tax rates):
+  Taxable income = (total invoiced ÷ 11 × 10) − deductible expenses
+  Then apply:
+    $0–$18,200: 0%
+    $18,201–$45,000: 19% on amount over $18,200
+    $45,001–$120,000: 32.5% on amount over $45,000
+    $120,001–$180,000: 37% on amount over $120,000
+    Over $180,000: 45% on amount over $180,000
+  Add Medicare levy: taxable income × 2%
+  Low income tax offset (LITO): if taxable income ≤ $37,500, offset = $700;
+    phases out between $37,500 and $66,667
+
+Financial year: 1 July to 30 June
+Current FY: if current month >= 7 use current calendar year, else prior year
+Display as: "FY 2024–25"
+
+BAS quarters:
+  Q1: 1 July – 30 September, due 28 October
+  Q2: 1 October – 31 December, due 28 February
+  Q3: 1 January – 31 March, due 28 April
+  Q4: 1 April – 30 June, due 28 July
+
+Travel reimbursement rate: $0.88 per km (ATO 2024-25 rate)
+
+--------------------------------------------------------------------------------
+SECTION 14 — API ENDPOINTS
+--------------------------------------------------------------------------------
+
+Build these RESTful API endpoints. All require authentication.
+All return JSON. All use /api prefix.
+
+AUTH:
+  GET  /api/auth/me          — returns current user or null
+  POST /api/auth/onboard     — saves onboarding data for new user
+
+DASHBOARD:
+  GET  /api/dashboard        — returns all home screen stats:
+    this_month_invoiced, pending_quotes_count, active_jobs_count,
+    unpaid_invoices_count, unpaid_amount, financial_summary (full
+    take-home calculation), bas_position (current quarter GST data),
+    recent_jobs (last 5), notifications_unread_count
+
+CLIENTS:
+  GET    /api/clients         — list all clients
+  POST   /api/clients         — create client
+  GET    /api/clients/:id     — get client with job history
+  PUT    /api/clients/:id     — update client
+  DELETE /api/clients/:id     — soft delete
+
+QUOTES:
+  GET  /api/quotes            — list quotes (filter by status query param)
+  POST /api/quotes            — create quote with line items
+  GET  /api/quotes/:id        — get quote with line items
+  PUT  /api/quotes/:id        — update quote
+  POST /api/quotes/:id/send   — mark as sent, record timestamp
+  POST /api/quotes/:id/convert — convert accepted quote to job
+  GET  /api/quotes/:id/pdf    — generate and return PDF
+
+JOBS:
+  GET  /api/jobs              — list jobs (filter by status)
+  POST /api/jobs              — create job
+  GET  /api/jobs/:id          — get job with costs and invoices
+  PUT  /api/jobs/:id          — update job
+  PUT  /api/jobs/:id/status   — update status only
+
+INVOICES:
+  GET  /api/invoices          — list all invoices
+  POST /api/invoices          — create invoice
+  GET  /api/invoices/:id      — get invoice detail
+  POST /api/invoices/:id/pay  — mark as paid with payment details
+  POST /api/invoices/:id/remind — log reminder sent
+  GET  /api/invoices/:id/pdf  — generate PDF
+
+EXPENSES:
+  GET    /api/expenses        — list (filter by category, job, month)
+  POST   /api/expenses        — create (multipart with photo)
+  GET    /api/expenses/:id    — get expense
+  PUT    /api/expenses/:id    — update expense
+  DELETE /api/expenses/:id    — delete expense
+
+VEHICLE:
+  GET  /api/logbook           — get logbook status and trips
+  POST /api/logbook/setup     — initialise logbook
+  GET  /api/logbook/trips     — list trips
+  POST /api/logbook/trips     — log a trip
+  DELETE /api/logbook/trips/:id — delete trip
+  GET  /api/logbook/summary   — business % and projected deduction
+
+SUBCONTRACTORS:
+  GET  /api/subcontractors    — list all
+  POST /api/subcontractors    — create
+  PUT  /api/subcontractors/:id — update
+  GET  /api/subcontractors/tpar — TPAR summary for current FY
+
+SETTINGS:
+  GET  /api/settings          — get user settings
+  PUT  /api/settings          — update settings
+  POST /api/settings/logo     — upload logo
+
+NOTIFICATIONS:
+  GET  /api/notifications             — list unread notifications
+  PUT  /api/notifications/:id/read    — mark as read
+  PUT  /api/notifications/read-all    — mark all read
+
+--------------------------------------------------------------------------------
+SECTION 15 — COMPLIANCE DATA (HARDCODE THESE VALUES)
+--------------------------------------------------------------------------------
+
+State deposit limits (used in quote builder validation):
+
+VIC: Domestic Building Contracts Act 1995
+  Jobs under $20,000: max 10% deposit
+  Jobs $20,000 and over: max 5% deposit
+
+NSW: Home Building Act 1989
+  Jobs under $20,000: max 10% deposit
+  Jobs $20,000 and over: max $1,000 (fixed dollar, not percentage)
+
+QLD: Queensland Building and Construction Commission Act 1991
+  All residential jobs: max 10% (or $100 if total under $3,300)
+
+WA, SA, TAS, ACT, NT: No statutory cap.
+  Show: "No statutory limit. Industry standard: 10%."
+
+SOPA text to append to ALL quotes and invoices:
+"This payment claim is made and served under the [State] Building and
+Construction Industry Security of Payment Act [Year]. The respondent is
+required to serve a payment schedule within the time specified in the Act.
+Failure to do so may result in the claimant being entitled to recover the
+claimed amount as a debt."
+
+State-specific SOPA acts (substitute [State] and [Year] dynamically):
+  VIC: Building and Construction Industry Security of Payment Act 2002
+  NSW: Building and Construction Industry Security of Payment Act 1999
+  QLD: Building Industry Fairness (Security of Payment) Act 2017
+  WA:  Construction Contracts Act 2004
+  SA:  Building and Construction Industry Security of Payment Act 2009
+  TAS: Building and Construction Industry Security of Payment Act 2009
+  ACT: Building and Construction Industry (Security of Payment) Act 2009
+  NT:  Construction Contracts (Security of Payments) Act 2004
+
+ATO vehicle rate: $0.88 per km (2024-25)
+Concessional super cap: $30,000 per financial year
+GST rate: 10% (1/11th of GST-inclusive price)
+
+--------------------------------------------------------------------------------
+SECTION 16 — SAMPLE DATA TO SEED ON FIRST LOGIN
+--------------------------------------------------------------------------------
+
+When testing or on first demo login, seed these records:
+
+2 clients:
+  Sarah Mitchell — Residential — sarah.mitchell@email.com — 0412 345 678
+  Westfield Shopping Centre — Commercial — facilities@westfield.com.au
+
+3 quotes:
+  Kitchen Power Point Installation — Sarah Mitchell — VIC — $730.90 — sent
+  Commercial Lighting Upgrade — Westfield — VIC — $6,614.30 — accepted
+  Bathroom Renovation — Sarah Mitchell — VIC — $4,200.00 — draft
+
+3 jobs:
+  Street Light Maintenance — Brisbane City Council — $2,400 — complete
+  Switchboard Replacement — James Chen — $3,850 — in_progress
+  Hot Water System Install — Smith Residence — $2,695 — active
+
+5 expenses spread across last 2 months, various categories
+
+8 vehicle trips from the last 3 weeks (logbook active, week 3 of 12)
+
+--------------------------------------------------------------------------------
+SECTION 17 — BUILD ORDER
+--------------------------------------------------------------------------------
+
+Build in this exact order. Use Replit Checkpoints after each phase.
+
+PHASE A — Foundation:
+  1. Set up Express backend with PostgreSQL connection
+  2. Create all database tables from Section 4
+  3. Implement Replit Auth
+  4. Build onboarding flow (3 steps)
+  5. Seed sample data function
+
+PHASE B — Core Screens Shell:
+  6. Build bottom navigation (5 tabs, design from Section 3)
+  7. Build Home screen stat cards (without financial panel)
+  8. Build Quotes list screen
+  9. Build Jobs list screen
+  10. Build Expenses list screen
+  11. Build Settings screen
+
+PHASE C — Core Features:
+  12. Build New Quote form with line items and compliance check
+  13. Build Quote detail and dual-view toggle
+  14. Build New Invoice from job
+  15. Build Expense capture form with category grid
+  16. Build Subcontractor TPAR prompt in expense capture
+
+PHASE D — Financial Intelligence:
+  17. Build "What You Actually Keep" bottom sheet with tax calculation
+  18. Build BAS countdown widget on home screen
+  19. Build vehicle logbook (setup, trip logging, summary, export)
+  20. Wire all dashboard stats to real database queries
+
+PHASE E — Polish:
+  21. Build notifications system and bell badge
+  22. Add PDF generation for quotes and invoices (jsPDF)
+  23. Add SOPA text dynamically to all PDFs by state
+  24. Final responsive check at 390px width
+  25. Confirm all 48px minimum tap targets throughout
+
+--------------------------------------------------------------------------------
+SECTION 18 — IMPORTANT IMPLEMENTATION NOTES
+--------------------------------------------------------------------------------
+
+1. All dollar amounts stored as DECIMAL(10,2). Display with toFixed(2) and
+   Australian dollar format: $X,XXX.XX. Never use floats for money.
+
+2. Australian date format throughout UI: DD Mon YYYY (e.g. "14 Jan 2025").
+   Never use MM/DD/YYYY.
+
+3. ABN display: always format as XX XXX XXX XXX with spaces.
+   Validate: 11 digits, pass the ATO checksum algorithm.
+
+4. All GST calculations use ÷11 method, never ×0.10, because invoice prices
+   are GST-inclusive.
+
+5. Numbering formats:
+   Quotes:   Q-2025-0001
+   Invoices: INV-2025-0001
+   Jobs:     JOB-2025-0001
+   Sequential, padded to 4 digits, resets each calendar year.
+
+6. Financial year runs 1 July to 30 June. Calculate server-side always.
+
+7. Never hardcode currency symbols in the database. Store raw numbers.
+   Format as AUD with $ symbol only in the UI layer.
+
+8. SOPA text is dynamically generated per quote based on the state field
+   on that quote — not the user's default state.
+
+9. The "What You Actually Keep" panel must always show a disclaimer that
+   figures are estimates and not financial advice.
+
+10. Every button, link, and interactive element: minimum 48px touch target
+    height. No exceptions. This app is used outdoors with gloves.
+
+================================================================================
+END OF PROMPT — Start with PHASE A. Confirm completion before moving to PHASE B.
+================================================================================

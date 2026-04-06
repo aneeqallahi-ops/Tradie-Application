@@ -1,0 +1,2130 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.1.0
+  description: TradeLedger API specification for Australian sole trader tradies
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: auth
+    description: Authentication operations
+  - name: dashboard
+    description: Dashboard and home screen data
+  - name: clients
+    description: Client management
+  - name: quotes
+    description: Quote management
+  - name: jobs
+    description: Job management
+  - name: invoices
+    description: Invoice management
+  - name: expenses
+    description: Expense tracking
+  - name: logbook
+    description: Vehicle logbook
+  - name: subcontractors
+    description: Subcontractor management
+  - name: settings
+    description: User settings
+  - name: notifications
+    description: Notification management
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /auth/user:
+    get:
+      operationId: getCurrentAuthUser
+      tags: [auth]
+      summary: Get current authenticated user
+      responses:
+        "200":
+          description: Current user or unauthenticated state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetCurrentAuthUserResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current tradie user profile
+      responses:
+        "200":
+          description: Current tradie user or null
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradieUserResponse"
+        "401":
+          description: Unauthorized
+
+  /auth/onboard:
+    post:
+      operationId: onboardUser
+      tags: [auth]
+      summary: Complete onboarding for new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OnboardUserBody"
+      responses:
+        "200":
+          description: Onboarding complete
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradieUserResponse"
+        "401":
+          description: Unauthorized
+
+  /dashboard:
+    get:
+      operationId: getDashboard
+      tags: [dashboard]
+      summary: Get all home screen stats and financial summary
+      responses:
+        "200":
+          description: Dashboard data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardResponse"
+        "401":
+          description: Unauthorized
+
+  /clients:
+    get:
+      operationId: getClients
+      tags: [clients]
+      summary: List all clients
+      responses:
+        "200":
+          description: List of clients
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Client"
+        "401":
+          description: Unauthorized
+    post:
+      operationId: createClient
+      tags: [clients]
+      summary: Create a new client
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateClientBody"
+      responses:
+        "201":
+          description: Created client
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Client"
+        "401":
+          description: Unauthorized
+
+  /clients/{id}:
+    get:
+      operationId: getClient
+      tags: [clients]
+      summary: Get client by ID with job history
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Client details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientDetail"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not found
+    put:
+      operationId: updateClient
+      tags: [clients]
+      summary: Update client
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateClientBody"
+      responses:
+        "200":
+          description: Updated client
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Client"
+        "401":
+          description: Unauthorized
+    delete:
+      operationId: deleteClient
+      tags: [clients]
+      summary: Delete client
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "401":
+          description: Unauthorized
+
+  /quotes:
+    get:
+      operationId: getQuotes
+      tags: [quotes]
+      summary: List quotes
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of quotes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/QuoteSummary"
+        "401":
+          description: Unauthorized
+    post:
+      operationId: createQuote
+      tags: [quotes]
+      summary: Create a new quote with line items
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateQuoteBody"
+      responses:
+        "201":
+          description: Created quote
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuoteDetail"
+        "401":
+          description: Unauthorized
+
+  /quotes/{id}:
+    get:
+      operationId: getQuote
+      tags: [quotes]
+      summary: Get quote with line items
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Quote details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuoteDetail"
+        "401":
+          description: Unauthorized
+    put:
+      operationId: updateQuote
+      tags: [quotes]
+      summary: Update a quote
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateQuoteBody"
+      responses:
+        "200":
+          description: Updated quote
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuoteDetail"
+        "401":
+          description: Unauthorized
+
+  /quotes/{id}/send:
+    post:
+      operationId: sendQuote
+      tags: [quotes]
+      summary: Mark quote as sent
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Quote sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuoteDetail"
+        "401":
+          description: Unauthorized
+
+  /quotes/{id}/convert:
+    post:
+      operationId: convertQuoteToJob
+      tags: [quotes]
+      summary: Convert accepted quote to a job
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Created job from quote
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+        "401":
+          description: Unauthorized
+
+  /jobs:
+    get:
+      operationId: getJobs
+      tags: [jobs]
+      summary: List jobs
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of jobs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/JobSummary"
+        "401":
+          description: Unauthorized
+    post:
+      operationId: createJob
+      tags: [jobs]
+      summary: Create a job
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateJobBody"
+      responses:
+        "201":
+          description: Created job
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+        "401":
+          description: Unauthorized
+
+  /jobs/{id}:
+    get:
+      operationId: getJob
+      tags: [jobs]
+      summary: Get job with costs and invoices
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Job details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobDetail"
+        "401":
+          description: Unauthorized
+    put:
+      operationId: updateJob
+      tags: [jobs]
+      summary: Update job
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateJobBody"
+      responses:
+        "200":
+          description: Updated job
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+        "401":
+          description: Unauthorized
+
+  /jobs/{id}/status:
+    put:
+      operationId: updateJobStatus
+      tags: [jobs]
+      summary: Update job status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateJobStatusBody"
+      responses:
+        "200":
+          description: Updated job
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+        "401":
+          description: Unauthorized
+
+  /invoices:
+    get:
+      operationId: getInvoices
+      tags: [invoices]
+      summary: List invoices
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: jobId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of invoices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InvoiceSummary"
+        "401":
+          description: Unauthorized
+    post:
+      operationId: createInvoice
+      tags: [invoices]
+      summary: Create invoice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateInvoiceBody"
+      responses:
+        "201":
+          description: Created invoice
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvoiceDetail"
+        "401":
+          description: Unauthorized
+
+  /invoices/{id}:
+    get:
+      operationId: getInvoice
+      tags: [invoices]
+      summary: Get invoice detail
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Invoice details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvoiceDetail"
+        "401":
+          description: Unauthorized
+
+  /invoices/{id}/pay:
+    post:
+      operationId: markInvoicePaid
+      tags: [invoices]
+      summary: Mark invoice as paid
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MarkInvoicePaidBody"
+      responses:
+        "200":
+          description: Updated invoice
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvoiceDetail"
+        "401":
+          description: Unauthorized
+
+  /invoices/{id}/remind:
+    post:
+      operationId: sendInvoiceReminder
+      tags: [invoices]
+      summary: Log reminder sent
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Reminder logged
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "401":
+          description: Unauthorized
+
+  /expenses:
+    get:
+      operationId: getExpenses
+      tags: [expenses]
+      summary: List expenses
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: jobId
+          in: query
+          schema:
+            type: integer
+        - name: month
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of expenses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Expense"
+        "401":
+          description: Unauthorized
+    post:
+      operationId: createExpense
+      tags: [expenses]
+      summary: Create expense
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateExpenseBody"
+      responses:
+        "201":
+          description: Created expense
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Expense"
+        "401":
+          description: Unauthorized
+
+  /expenses/{id}:
+    get:
+      operationId: getExpense
+      tags: [expenses]
+      summary: Get expense
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Expense detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Expense"
+        "401":
+          description: Unauthorized
+    put:
+      operationId: updateExpense
+      tags: [expenses]
+      summary: Update expense
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateExpenseBody"
+      responses:
+        "200":
+          description: Updated expense
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Expense"
+        "401":
+          description: Unauthorized
+    delete:
+      operationId: deleteExpense
+      tags: [expenses]
+      summary: Delete expense
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "401":
+          description: Unauthorized
+
+  /expenses/summary:
+    get:
+      operationId: getExpenseSummary
+      tags: [expenses]
+      summary: Get expense summary stats
+      responses:
+        "200":
+          description: Expense summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpenseSummary"
+        "401":
+          description: Unauthorized
+
+  /logbook:
+    get:
+      operationId: getLogbook
+      tags: [logbook]
+      summary: Get logbook status
+      responses:
+        "200":
+          description: Logbook status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LogbookStatus"
+        "401":
+          description: Unauthorized
+
+  /logbook/setup:
+    post:
+      operationId: setupLogbook
+      tags: [logbook]
+      summary: Initialize logbook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetupLogbookBody"
+      responses:
+        "200":
+          description: Logbook initialized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "401":
+          description: Unauthorized
+
+  /logbook/trips:
+    get:
+      operationId: getLogbookTrips
+      tags: [logbook]
+      summary: List logbook trips
+      responses:
+        "200":
+          description: List of trips
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VehicleTrip"
+        "401":
+          description: Unauthorized
+    post:
+      operationId: logTrip
+      tags: [logbook]
+      summary: Log a vehicle trip
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTripBody"
+      responses:
+        "201":
+          description: Created trip
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VehicleTrip"
+        "401":
+          description: Unauthorized
+
+  /logbook/trips/{id}:
+    delete:
+      operationId: deleteTrip
+      tags: [logbook]
+      summary: Delete a trip
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "401":
+          description: Unauthorized
+
+  /logbook/summary:
+    get:
+      operationId: getLogbookSummary
+      tags: [logbook]
+      summary: Get logbook summary with deduction calculation
+      responses:
+        "200":
+          description: Logbook summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LogbookSummary"
+        "401":
+          description: Unauthorized
+
+  /subcontractors:
+    get:
+      operationId: getSubcontractors
+      tags: [subcontractors]
+      summary: List subcontractors
+      responses:
+        "200":
+          description: List of subcontractors
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Subcontractor"
+        "401":
+          description: Unauthorized
+    post:
+      operationId: createSubcontractor
+      tags: [subcontractors]
+      summary: Create subcontractor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSubcontractorBody"
+      responses:
+        "201":
+          description: Created subcontractor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Subcontractor"
+        "401":
+          description: Unauthorized
+
+  /subcontractors/tpar:
+    get:
+      operationId: getTparSummary
+      tags: [subcontractors]
+      summary: Get TPAR summary for current FY
+      responses:
+        "200":
+          description: TPAR summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TparSummary"
+        "401":
+          description: Unauthorized
+
+  /subcontractors/{id}:
+    put:
+      operationId: updateSubcontractor
+      tags: [subcontractors]
+      summary: Update subcontractor
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSubcontractorBody"
+      responses:
+        "200":
+          description: Updated subcontractor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Subcontractor"
+        "401":
+          description: Unauthorized
+
+  /settings:
+    get:
+      operationId: getSettings
+      tags: [settings]
+      summary: Get user settings
+      responses:
+        "200":
+          description: User settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradieUser"
+        "401":
+          description: Unauthorized
+    put:
+      operationId: updateSettings
+      tags: [settings]
+      summary: Update user settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateSettingsBody"
+      responses:
+        "200":
+          description: Updated settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradieUser"
+        "401":
+          description: Unauthorized
+
+  /notifications:
+    get:
+      operationId: getNotifications
+      tags: [notifications]
+      summary: List notifications
+      responses:
+        "200":
+          description: List of notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Notification"
+        "401":
+          description: Unauthorized
+
+  /notifications/read-all:
+    put:
+      operationId: markAllNotificationsRead
+      tags: [notifications]
+      summary: Mark all notifications as read
+      responses:
+        "200":
+          description: Done
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "401":
+          description: Unauthorized
+
+  /notifications/{id}/read:
+    put:
+      operationId: markNotificationRead
+      tags: [notifications]
+      summary: Mark notification as read
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Done
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "401":
+          description: Unauthorized
+
+  /uploads/receipt:
+    post:
+      operationId: uploadReceipt
+      tags: [uploads]
+      summary: Upload a receipt image
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                receipt:
+                  type: string
+                  format: binary
+              required:
+                - receipt
+      responses:
+        "200":
+          description: Uploaded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadReceiptResponse"
+        "401":
+          description: Unauthorized
+
+  /export/invoice/{id}/pdf:
+    get:
+      operationId: exportInvoicePdf
+      tags: [export]
+      summary: Export invoice as PDF
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: PDF file
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not found
+
+  /export/quote/{id}/pdf:
+    get:
+      operationId: exportQuotePdf
+      tags: [export]
+      summary: Export quote as PDF
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: PDF file
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not found
+
+  /export/data.csv:
+    get:
+      operationId: exportDataCsv
+      tags: [export]
+      summary: Export all invoices and expenses as CSV
+      responses:
+        "200":
+          description: CSV file
+          content:
+            text/csv:
+              schema:
+                type: string
+        "401":
+          description: Unauthorized
+
+  /export/logbook.pdf:
+    get:
+      operationId: exportLogbookPdf
+      tags: [export]
+      summary: Export vehicle logbook as PDF
+      responses:
+        "200":
+          description: PDF file
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "401":
+          description: Unauthorized
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    GetCurrentAuthUserResponse:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/AuthUser"
+      required:
+        - user
+
+    AuthUser:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          nullable: true
+        firstName:
+          type: string
+          nullable: true
+        lastName:
+          type: string
+          nullable: true
+        profileImageUrl:
+          type: string
+          nullable: true
+      required:
+        - id
+
+    TradieUser:
+      type: object
+      properties:
+        id:
+          type: integer
+        replitUserId:
+          type: string
+        businessName:
+          type: string
+          nullable: true
+        abn:
+          type: string
+          nullable: true
+        gstRegistered:
+          type: boolean
+          nullable: true
+        state:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        logoUrl:
+          type: string
+          nullable: true
+        hourlyRate:
+          type: string
+          nullable: true
+        defaultMarkupPercent:
+          type: string
+          nullable: true
+        profitFirstTaxPercent:
+          type: string
+          nullable: true
+        profitFirstExpensesPercent:
+          type: string
+          nullable: true
+        tradeType:
+          type: string
+          nullable: true
+        onboardingComplete:
+          type: boolean
+          nullable: true
+        createdAt:
+          type: string
+          nullable: true
+      required:
+        - id
+        - replitUserId
+
+    TradieUserResponse:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/TradieUser"
+          nullable: true
+        needsOnboarding:
+          type: boolean
+      required:
+        - needsOnboarding
+
+    OnboardUserBody:
+      type: object
+      properties:
+        businessName:
+          type: string
+        abn:
+          type: string
+        gstRegistered:
+          type: boolean
+        state:
+          type: string
+        hourlyRate:
+          type: number
+        defaultMarkupPercent:
+          type: number
+        phone:
+          type: string
+        email:
+          type: string
+        profitFirstTaxPercent:
+          type: number
+        profitFirstExpensesPercent:
+          type: number
+        tradeType:
+          type: string
+      required:
+        - businessName
+        - state
+
+    DashboardResponse:
+      type: object
+      properties:
+        thisMonthInvoiced:
+          type: number
+        lastMonthInvoiced:
+          type: number
+        pendingQuotesCount:
+          type: integer
+        activeJobsCount:
+          type: integer
+        unpaidInvoicesCount:
+          type: integer
+        unpaidAmount:
+          type: number
+        financialSummary:
+          $ref: "#/components/schemas/FinancialSummary"
+        basPosition:
+          $ref: "#/components/schemas/BasPosition"
+        recentJobs:
+          type: array
+          items:
+            $ref: "#/components/schemas/JobSummary"
+        notificationsUnreadCount:
+          type: integer
+      required:
+        - thisMonthInvoiced
+        - lastMonthInvoiced
+        - pendingQuotesCount
+        - activeJobsCount
+        - unpaidInvoicesCount
+        - unpaidAmount
+        - financialSummary
+        - basPosition
+        - recentJobs
+        - notificationsUnreadCount
+
+    FinancialSummary:
+      type: object
+      properties:
+        financialYear:
+          type: string
+        totalInvoicedFy:
+          type: number
+        gstCollected:
+          type: number
+        actualIncome:
+          type: number
+        businessExpenses:
+          type: number
+        vehicleDeduction:
+          type: number
+        taxableIncome:
+          type: number
+        estimatedIncomeTax:
+          type: number
+        medicareLevy:
+          type: number
+        lito:
+          type: number
+        superVoluntary:
+          type: number
+        takeHome:
+          type: number
+        taxPercent:
+          type: number
+        expensesPercent:
+          type: number
+        yoursPercent:
+          type: number
+        marginalBreakdown:
+          type: array
+          items:
+            $ref: "#/components/schemas/TaxBracket"
+      required:
+        - financialYear
+        - totalInvoicedFy
+        - gstCollected
+        - actualIncome
+        - businessExpenses
+        - vehicleDeduction
+        - taxableIncome
+        - estimatedIncomeTax
+        - medicareLevy
+        - lito
+        - takeHome
+        - taxPercent
+        - expensesPercent
+        - yoursPercent
+        - marginalBreakdown
+
+    TaxBracket:
+      type: object
+      properties:
+        range:
+          type: string
+        rate:
+          type: string
+        amount:
+          type: number
+      required:
+        - range
+        - rate
+        - amount
+
+    BasPosition:
+      type: object
+      properties:
+        quarter:
+          type: integer
+        startDate:
+          type: string
+        endDate:
+          type: string
+        dueDate:
+          type: string
+        daysUntilDue:
+          type: integer
+        gstCollected:
+          type: number
+        gstClaimable:
+          type: number
+        netGstPayable:
+          type: number
+      required:
+        - quarter
+        - startDate
+        - endDate
+        - dueDate
+        - daysUntilDue
+        - gstCollected
+        - gstClaimable
+        - netGstPayable
+
+    Client:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+          nullable: true
+        name:
+          type: string
+        type:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        address:
+          type: string
+          nullable: true
+        abn:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          nullable: true
+      required:
+        - id
+        - name
+
+    ClientDetail:
+      allOf:
+        - $ref: "#/components/schemas/Client"
+        - type: object
+          properties:
+            jobs:
+              type: array
+              items:
+                $ref: "#/components/schemas/JobSummary"
+          required:
+            - jobs
+
+    CreateClientBody:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        address:
+          type: string
+        abn:
+          type: string
+      required:
+        - name
+
+    QuoteSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        quoteNumber:
+          type: string
+          nullable: true
+        title:
+          type: string
+        status:
+          type: string
+          nullable: true
+        state:
+          type: string
+        total:
+          type: string
+          nullable: true
+        sentAt:
+          type: string
+          nullable: true
+        viewedAt:
+          type: string
+          nullable: true
+        validUntil:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          nullable: true
+        client:
+          $ref: "#/components/schemas/Client"
+          nullable: true
+      required:
+        - id
+        - title
+        - state
+
+    QuoteLineItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        description:
+          type: string
+        quantity:
+          type: string
+          nullable: true
+        unitCost:
+          type: string
+          nullable: true
+        markupPercent:
+          type: string
+          nullable: true
+        unitPrice:
+          type: string
+          nullable: true
+        lineTotal:
+          type: string
+          nullable: true
+        isInternal:
+          type: boolean
+          nullable: true
+        sortOrder:
+          type: integer
+          nullable: true
+      required:
+        - id
+        - description
+
+    QuoteDetail:
+      allOf:
+        - $ref: "#/components/schemas/QuoteSummary"
+        - type: object
+          properties:
+            description:
+              type: string
+              nullable: true
+            subtotal:
+              type: string
+              nullable: true
+            gstAmount:
+              type: string
+              nullable: true
+            depositPercent:
+              type: string
+              nullable: true
+            depositAmount:
+              type: string
+              nullable: true
+            depositCompliant:
+              type: boolean
+              nullable: true
+            travelKm:
+              type: string
+              nullable: true
+            travelCost:
+              type: string
+              nullable: true
+            internalNotes:
+              type: string
+              nullable: true
+            lineItems:
+              type: array
+              items:
+                $ref: "#/components/schemas/QuoteLineItem"
+            sopaText:
+              type: string
+              nullable: true
+          required:
+            - lineItems
+
+    CreateQuoteBody:
+      type: object
+      properties:
+        clientId:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        state:
+          type: string
+        validUntil:
+          type: string
+        depositPercent:
+          type: number
+        travelKm:
+          type: number
+        internalNotes:
+          type: string
+        lineItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/CreateLineItemBody"
+      required:
+        - title
+        - state
+
+    CreateLineItemBody:
+      type: object
+      properties:
+        description:
+          type: string
+        quantity:
+          type: number
+        unitCost:
+          type: number
+        markupPercent:
+          type: number
+        isInternal:
+          type: boolean
+        sortOrder:
+          type: integer
+      required:
+        - description
+
+    JobSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        jobNumber:
+          type: string
+          nullable: true
+        title:
+          type: string
+        status:
+          type: string
+          nullable: true
+        state:
+          type: string
+          nullable: true
+        total:
+          type: string
+          nullable: true
+        scheduledDate:
+          type: string
+          nullable: true
+        completedDate:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          nullable: true
+        client:
+          $ref: "#/components/schemas/Client"
+          nullable: true
+      required:
+        - id
+        - title
+
+    Job:
+      allOf:
+        - $ref: "#/components/schemas/JobSummary"
+        - type: object
+          properties:
+            description:
+              type: string
+              nullable: true
+            subtotal:
+              type: string
+              nullable: true
+            gstAmount:
+              type: string
+              nullable: true
+            amountPaid:
+              type: string
+              nullable: true
+            quoteId:
+              type: integer
+              nullable: true
+
+    JobDetail:
+      allOf:
+        - $ref: "#/components/schemas/Job"
+        - type: object
+          properties:
+            expenses:
+              type: array
+              items:
+                $ref: "#/components/schemas/Expense"
+            invoices:
+              type: array
+              items:
+                $ref: "#/components/schemas/InvoiceSummary"
+            quoteLineItems:
+              type: array
+              items:
+                $ref: "#/components/schemas/QuoteLineItem"
+          required:
+            - expenses
+            - invoices
+            - quoteLineItems
+
+    CreateJobBody:
+      type: object
+      properties:
+        clientId:
+          type: integer
+        quoteId:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        state:
+          type: string
+        status:
+          type: string
+        scheduledDate:
+          type: string
+        total:
+          type: number
+        subtotal:
+          type: number
+        gstAmount:
+          type: number
+      required:
+        - title
+
+    UpdateJobStatusBody:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    InvoiceSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        invoiceNumber:
+          type: string
+          nullable: true
+        type:
+          type: string
+          nullable: true
+        status:
+          type: string
+          nullable: true
+        total:
+          type: string
+          nullable: true
+        amountPaid:
+          type: string
+          nullable: true
+        dueDate:
+          type: string
+          nullable: true
+        paidAt:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          nullable: true
+        client:
+          $ref: "#/components/schemas/Client"
+          nullable: true
+      required:
+        - id
+
+    InvoiceDetail:
+      allOf:
+        - $ref: "#/components/schemas/InvoiceSummary"
+        - type: object
+          properties:
+            subtotal:
+              type: string
+              nullable: true
+            gstAmount:
+              type: string
+              nullable: true
+            paymentMethod:
+              type: string
+              nullable: true
+            stripePaymentLink:
+              type: string
+              nullable: true
+            sopaText:
+              type: string
+              nullable: true
+            job:
+              $ref: "#/components/schemas/JobSummary"
+              nullable: true
+            sentAt:
+              type: string
+              nullable: true
+            reminder1SentAt:
+              type: string
+              nullable: true
+            reminder2SentAt:
+              type: string
+              nullable: true
+
+    CreateInvoiceBody:
+      type: object
+      properties:
+        jobId:
+          type: integer
+        clientId:
+          type: integer
+        type:
+          type: string
+        total:
+          type: number
+        subtotal:
+          type: number
+        gstAmount:
+          type: number
+        dueDate:
+          type: string
+        stripePaymentLink:
+          type: string
+      required:
+        - total
+
+    MarkInvoicePaidBody:
+      type: object
+      properties:
+        paymentMethod:
+          type: string
+        paidAt:
+          type: string
+      required:
+        - paymentMethod
+
+    Expense:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+          nullable: true
+        jobId:
+          type: integer
+          nullable: true
+        category:
+          type: string
+        vendor:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        amount:
+          type: string
+        gstClaimable:
+          type: string
+          nullable: true
+        isGstClaimable:
+          type: boolean
+          nullable: true
+        receiptUrl:
+          type: string
+          nullable: true
+        expenseDate:
+          type: string
+        financialYear:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          nullable: true
+      required:
+        - id
+        - category
+        - amount
+        - expenseDate
+
+    CreateExpenseBody:
+      type: object
+      properties:
+        jobId:
+          type: integer
+        category:
+          type: string
+        vendor:
+          type: string
+        description:
+          type: string
+        amount:
+          type: number
+        isGstClaimable:
+          type: boolean
+        receiptUrl:
+          type: string
+        expenseDate:
+          type: string
+        subcontractorName:
+          type: string
+        subcontractorAbn:
+          type: string
+        addToTpar:
+          type: boolean
+      required:
+        - category
+        - amount
+        - expenseDate
+
+    ExpenseSummary:
+      type: object
+      properties:
+        thisMonth:
+          type: number
+        gstClaimable:
+          type: number
+        thisFy:
+          type: number
+        subcontractorCount:
+          type: integer
+        subcontractorTotal:
+          type: number
+      required:
+        - thisMonth
+        - gstClaimable
+        - thisFy
+        - subcontractorCount
+        - subcontractorTotal
+
+    VehicleTrip:
+      type: object
+      properties:
+        id:
+          type: integer
+        tripDate:
+          type: string
+        startLocation:
+          type: string
+          nullable: true
+        endLocation:
+          type: string
+          nullable: true
+        distanceKm:
+          type: string
+        purpose:
+          type: string
+          nullable: true
+        jobId:
+          type: integer
+          nullable: true
+        isBusiness:
+          type: boolean
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          nullable: true
+      required:
+        - id
+        - tripDate
+        - distanceKm
+
+    LogbookStatus:
+      type: object
+      properties:
+        active:
+          type: boolean
+        startDate:
+          type: string
+          nullable: true
+        vehicleMake:
+          type: string
+          nullable: true
+        vehicleModel:
+          type: string
+          nullable: true
+        odometerStart:
+          type: number
+          nullable: true
+        weekNumber:
+          type: integer
+          nullable: true
+        daysRemaining:
+          type: integer
+          nullable: true
+        tripsThisWeek:
+          type: integer
+          nullable: true
+      required:
+        - active
+
+    LogbookSummary:
+      type: object
+      properties:
+        totalKm:
+          type: number
+        businessKm:
+          type: number
+        businessPercent:
+          type: number
+        projectedAnnualDeduction:
+          type: number
+        estimatedTaxSaving:
+          type: number
+        trips:
+          type: array
+          items:
+            $ref: "#/components/schemas/VehicleTrip"
+      required:
+        - totalKm
+        - businessKm
+        - businessPercent
+        - projectedAnnualDeduction
+        - estimatedTaxSaving
+        - trips
+
+    SetupLogbookBody:
+      type: object
+      properties:
+        vehicleMake:
+          type: string
+        vehicleModel:
+          type: string
+        odometerStart:
+          type: number
+      required:
+        - vehicleMake
+        - vehicleModel
+        - odometerStart
+
+    CreateTripBody:
+      type: object
+      properties:
+        tripDate:
+          type: string
+        startLocation:
+          type: string
+        endLocation:
+          type: string
+        distanceKm:
+          type: number
+        purpose:
+          type: string
+        jobId:
+          type: integer
+        isBusiness:
+          type: boolean
+        notes:
+          type: string
+      required:
+        - tripDate
+        - distanceKm
+
+    Subcontractor:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        abn:
+          type: string
+          nullable: true
+        address:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        totalPaidThisFy:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          nullable: true
+      required:
+        - id
+        - name
+
+    CreateSubcontractorBody:
+      type: object
+      properties:
+        name:
+          type: string
+        abn:
+          type: string
+        address:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+      required:
+        - name
+
+    TparSummary:
+      type: object
+      properties:
+        financialYear:
+          type: string
+        subcontractors:
+          type: array
+          items:
+            $ref: "#/components/schemas/Subcontractor"
+        totalAmount:
+          type: number
+        dueDate:
+          type: string
+      required:
+        - financialYear
+        - subcontractors
+        - totalAmount
+        - dueDate
+
+    UpdateSettingsBody:
+      type: object
+      properties:
+        businessName:
+          type: string
+        abn:
+          type: string
+        gstRegistered:
+          type: boolean
+        state:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        hourlyRate:
+          type: number
+        defaultMarkupPercent:
+          type: number
+        profitFirstTaxPercent:
+          type: number
+        profitFirstExpensesPercent:
+          type: number
+        tradeType:
+          type: string
+
+    Notification:
+      type: object
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+          nullable: true
+        message:
+          type: string
+          nullable: true
+        isRead:
+          type: boolean
+          nullable: true
+        actionUrl:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          nullable: true
+      required:
+        - id
+
+    UploadReceiptResponse:
+      type: object
+      properties:
+        fileUrl:
+          type: string
+        filename:
+          type: string
+          nullable: true
+      required:
+        - fileUrl
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+          nullable: true
+      required:
+        - success
