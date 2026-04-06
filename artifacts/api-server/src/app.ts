@@ -2,10 +2,14 @@ import express, { type Express, type Request, type Response, type NextFunction }
 import cors from "cors";
 import pinoHttp from "pino-http";
 import cookieParser from "cookie-parser";
+import path from "path";
+import { fileURLToPath } from "url";
 import router from "./routes";
 import { logger } from "./lib/logger";
 import { authMiddleware } from "./middlewares/authMiddleware";
 import { BadRequestError } from "./lib/params";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const app: Express = express();
 
@@ -35,6 +39,14 @@ app.use(cookieParser());
 app.use(authMiddleware);
 
 app.use("/api", router);
+
+if (process.env.NODE_ENV === "production") {
+  const staticDir = path.resolve(__dirname, "../../tradeledger-v2/dist/public");
+  app.use(express.static(staticDir));
+  app.get("*", (_req: Request, res: Response) => {
+    res.sendFile(path.join(staticDir, "index.html"));
+  });
+}
 
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   if (err instanceof BadRequestError) {
