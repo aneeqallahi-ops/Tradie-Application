@@ -53,6 +53,10 @@ externalPort = 5000
 localPort = 8080
 externalPort = 80
 
+[[ports]]
+localPort = 23717
+externalPort = 3000
+
 [deployment]
 deploymentTarget = "autoscale"
 run = ["bash", "-c", "node --enable-source-maps artifacts/api-server/dist/index.mjs & PORT=5000 node_modules/.bin/vite preview --filter @workspace/tradeledger-v2 --host 0.0.0.0 --port 5000"]
