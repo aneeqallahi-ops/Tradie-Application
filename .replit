@@ -88,5 +88,5 @@ build = ["pnpm", "run", "build"]
 ADVISORY_ADMIN_USER_IDS = "advisor-admin-test-sub"
 
 [postMerge]
-path = "scripts/post-merge.sh"
-timeoutMs = 120000
+path = ""
+timeoutMs = 0
