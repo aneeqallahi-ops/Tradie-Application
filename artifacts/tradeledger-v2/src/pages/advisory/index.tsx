@@ -100,8 +100,8 @@ export default function AdvisoryPage() {
   const [autoOpened, setAutoOpened] = useState(false);
 
   const { income: annualIncome, source: incomeSource } = deriveIncomePrefill(
-    taxPosition?.revenueYtd,
-    taxPosition?.daysIntoFy,
+    taxPosition?.ytdRevenueExGst,
+    taxPosition?.fyDaysElapsed,
     me?.user?.annualTurnoverBand,
   );
 
