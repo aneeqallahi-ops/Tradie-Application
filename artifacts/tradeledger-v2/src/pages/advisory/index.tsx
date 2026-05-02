@@ -9,7 +9,7 @@ const TURNOVER_BAND_MIDPOINTS: Record<string, number> = {
   under_50k: 25000,
   "50k_150k": 100000,
   "150k_600k": 375000,
-  over_600k: 750000,
+  over_600k: 900000,
 };
 
 function deriveIncomePrefill(
