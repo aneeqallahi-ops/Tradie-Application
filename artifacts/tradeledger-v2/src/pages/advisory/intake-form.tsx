@@ -38,6 +38,18 @@ export function IntakeForm({ open, onClose, serviceType, prefillIncome, prefillH
   const [urgency, setUrgency] = useState<"this_week" | "this_month" | "no_rush">("no_rush");
   const [submitted, setSubmitted] = useState(false);
 
+  useEffect(() => {
+    if (!submitted) {
+      setIncome(prefillIncome != null ? String(Math.round(prefillIncome)) : "");
+    }
+  }, [prefillIncome, submitted]);
+
+  useEffect(() => {
+    if (!submitted) {
+      setHelpNeeded(prefillHelp ?? "");
+    }
+  }, [prefillHelp, submitted]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     createRequest.mutate(
