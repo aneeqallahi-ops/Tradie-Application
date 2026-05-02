@@ -155,6 +155,15 @@ export function getTurnoverBands(): TurnoverBand[] {
   return guidelines().turnoverBands;
 }
 
+export function getSuperConcessionalCap(): number {
+  return guidelines().superannuation.concessionalCap;
+}
+
+export function getHomeOfficeRate(): number {
+  // ATO fixed-rate method in dollars per hour
+  return guidelines().homeOffice.fixedRateCentsPerHour;
+}
+
 export function getDeductibleCategories(tradeType: string | null | undefined): DeductibleCategory[] {
   const g = guidelines();
   const trade = (tradeType ?? "other").toLowerCase();

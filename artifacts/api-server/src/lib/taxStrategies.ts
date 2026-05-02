@@ -3,6 +3,8 @@ import {
   getInstantAssetWriteOff,
   getVehicleRate,
   getGSTThreshold,
+  getSuperConcessionalCap,
+  getHomeOfficeRate,
 } from "./taxDataService";
 
 export interface UserContext {
@@ -100,10 +102,12 @@ const STRATEGIES: StrategyDefinition[] = [
     talkToCpa: false,
     isRisk: false,
     isApplicable: (ctx) => {
-      if (!ctx.ytdRevenueExGst || ctx.daysToEofy <= 0) return false;
+      if (!ctx.ytdRevenueExGst || ctx.daysToEofy < 7) return false;
       const threshold = getInstantAssetWriteOff();
       const remaining = threshold - ctx.toolsExpensesYtd;
-      return remaining > 0;
+      // Only applicable when there is remaining write-off capacity AND some existing asset spend
+      // (confirming they are active in tools/equipment purchasing this FY)
+      return remaining > 0 && ctx.toolsExpensesYtd > 0;
     },
     calculateSaving: (ctx) => {
       const threshold = getInstantAssetWriteOff();
@@ -193,8 +197,7 @@ const STRATEGIES: StrategyDefinition[] = [
     isRisk: false,
     isApplicable: (ctx) => ctx.ytdRevenueExGst > 0 && ctx.marginalRate >= 0.16,
     calculateSaving: (ctx) => {
-      // Suggest contributing 10% of projected taxable income, capped at concessional cap remainder
-      const concessionalCap = 30000;
+      const concessionalCap = getSuperConcessionalCap();
       const suggestedContribution = Math.min(
         concessionalCap,
         Math.max(0, ctx.projectedTaxableIncome * 0.10)
@@ -203,7 +206,7 @@ const STRATEGIES: StrategyDefinition[] = [
       return Math.round(suggestedContribution * Math.max(0, ctx.marginalRate - 0.15));
     },
     description: (ctx) => {
-      const concessionalCap = 30000;
+      const concessionalCap = getSuperConcessionalCap();
       const suggestedContribution = Math.min(
         concessionalCap,
         Math.max(0, Math.round(ctx.projectedTaxableIncome * 0.10))
@@ -273,40 +276,34 @@ const STRATEGIES: StrategyDefinition[] = [
     isRisk: false,
     isApplicable: (ctx) => ctx.ytdRevenueExGst > 0,
     calculateSaving: (ctx) => {
-      const fixedRate = 0.70; // ATO fixed rate $/hr
-      // If the user has recorded home_office expenses, use those to infer hours
+      const fixedRate = getHomeOfficeRate(); // from taxDataService (ATO guidelines JSON)
       if (ctx.homeOfficeExpensesYtd > 0) {
         const inferredHoursYtd = ctx.homeOfficeExpensesYtd / fixedRate;
         const projectedAnnualHours = projectAnnual(inferredHoursYtd, ctx.fyDaysElapsed, ctx.fyDaysTotal);
         return Math.round(projectedAnnualHours * fixedRate * ctx.marginalRate);
       }
-      // Derive from revenue: higher-revenue tradies do more admin.
-      // Use 1–3 hrs/day scaled by projected annual income tiers; min 1 hr/day.
       const annualIncome = ctx.projectedAnnualIncome;
       const hoursPerDay = annualIncome >= 150000 ? 2.5 : annualIncome >= 75000 ? 2.0 : 1.5;
       const workingDays = Math.round(ctx.fyDaysTotal * (5 / 7));
-      const totalHours = hoursPerDay * workingDays;
-      return Math.round(totalHours * fixedRate * ctx.marginalRate);
+      return Math.round(hoursPerDay * workingDays * fixedRate * ctx.marginalRate);
     },
     description: (ctx) => {
-      const fixedRate = 0.70;
-      let hoursPerDay: number;
-      let deduction: number;
-      let workingDays: number;
+      const fixedRate = getHomeOfficeRate();
+      const rateCents = Math.round(fixedRate * 100);
 
       if (ctx.homeOfficeExpensesYtd > 0) {
         const inferredHoursYtd = ctx.homeOfficeExpensesYtd / fixedRate;
         const projectedAnnualHours = Math.round(projectAnnual(inferredHoursYtd, ctx.fyDaysElapsed, ctx.fyDaysTotal));
-        deduction = Math.round(projectedAnnualHours * fixedRate);
-        return `Based on your recorded home office activity, you're on track for ~${projectedAnnualHours} home-office hours this FY. At the ATO fixed rate of 70c/hr that's a $${deduction.toLocaleString()} deduction — saving you $${Math.round(deduction * ctx.marginalRate).toLocaleString()} in tax. Keep a representative diary of hours (a calendar record is sufficient).`;
+        const deduction = Math.round(projectedAnnualHours * fixedRate);
+        return `Based on your recorded home office activity, you're on track for ~${projectedAnnualHours} home-office hours this FY. At the ATO fixed rate of ${rateCents}c/hr that's a $${deduction.toLocaleString()} deduction — saving you $${Math.round(deduction * ctx.marginalRate).toLocaleString()} in tax. Keep a representative diary of hours (a calendar record is sufficient).`;
       }
 
       const annualIncome = ctx.projectedAnnualIncome;
-      hoursPerDay = annualIncome >= 150000 ? 2.5 : annualIncome >= 75000 ? 2.0 : 1.5;
-      workingDays = Math.round(ctx.fyDaysTotal * (5 / 7));
+      const hoursPerDay = annualIncome >= 150000 ? 2.5 : annualIncome >= 75000 ? 2.0 : 1.5;
+      const workingDays = Math.round(ctx.fyDaysTotal * (5 / 7));
       const totalHours = Math.round(hoursPerDay * workingDays);
-      deduction = Math.round(totalHours * fixedRate);
-      return `The ATO's fixed-rate method allows 70 cents per hour for home office use (electricity, internet, phone, stationery). At ~${hoursPerDay} hours/day for ~${workingDays} working days, that's ~${totalHours} hours and a $${deduction.toLocaleString()} deduction this FY — saving $${Math.round(deduction * ctx.marginalRate).toLocaleString()} at your ${Math.round(ctx.marginalRate * 100)}% rate. Keep a representative diary; no receipts needed for the fixed-rate method.`;
+      const deduction = Math.round(totalHours * fixedRate);
+      return `The ATO's fixed-rate method allows ${rateCents} cents per hour for home office use (electricity, internet, phone, stationery). At ~${hoursPerDay} hours/day for ~${workingDays} working days, that's ~${totalHours} hours and a $${deduction.toLocaleString()} deduction this FY — saving $${Math.round(deduction * ctx.marginalRate).toLocaleString()} at your ${Math.round(ctx.marginalRate * 100)}% rate. Keep a representative diary; no receipts needed for the fixed-rate method.`;
     },
     deadline: () => null,
   },

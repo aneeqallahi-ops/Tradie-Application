@@ -158,8 +158,12 @@ export default function StrategiesTab() {
     );
   }
 
-  const savings = data.strategies.filter(s => !s.isRisk);
-  const risks = data.strategies.filter(s => s.isRisk);
+  const savings = data.strategies
+    .filter(s => !s.isRisk)
+    .sort((a, b) => b.estimatedSaving - a.estimatedSaving);
+  const risks = data.strategies
+    .filter(s => s.isRisk)
+    .sort((a, b) => b.estimatedSaving - a.estimatedSaving);
   const totalSaving = data.totalPotentialSaving;
 
   return (
