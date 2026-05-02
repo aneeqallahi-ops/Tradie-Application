@@ -137,8 +137,20 @@ router.get("/dashboard", requireAuth, async (req: Request, res: Response) => {
     const taxableIncome = Math.max(0, actualIncome - businessExpenses - vehicleDeduction);
     const { totalTax, incomeTax, medicareLevy, lito, brackets } = calculateAustralianIncomeTax(taxableIncome);
     const takeHome = actualIncome - totalTax - businessExpenses;
-    const taxPercent = tradieUser.profitFirstTaxPercent ? parseFloat(String(tradieUser.profitFirstTaxPercent)) : 15;
-    const expensesPercent = tradieUser.profitFirstExpensesPercent ? parseFloat(String(tradieUser.profitFirstExpensesPercent)) : 10;
+    // Real-data-derived breakdown of every $1 invoiced. By construction
+    //   takeHome + totalTax + businessExpenses + gstCollectedFy = totalInvoicedFy
+    // so the three slices below sum to 100% (we group GST collected with
+    // expenses since both are cash that flows out of the business).
+    let yoursPercent = 0;
+    let taxPercent = 0;
+    let expensesPercent = 0;
+    if (totalInvoicedFy > 0) {
+      const yoursRaw = Math.max(0, (takeHome / totalInvoicedFy) * 100);
+      const taxRaw = Math.max(0, (totalTax / totalInvoicedFy) * 100);
+      yoursPercent = Math.round(yoursRaw);
+      taxPercent = Math.round(taxRaw);
+      expensesPercent = Math.max(0, 100 - yoursPercent - taxPercent);
+    }
     const financialYear = getFinancialYearRange();
     const fyLabel = `${financialYear.start.getFullYear()}-${(financialYear.end.getFullYear()).toString().slice(2)}`;
 
@@ -217,7 +229,7 @@ router.get("/dashboard", requireAuth, async (req: Request, res: Response) => {
         takeHome,
         taxPercent,
         expensesPercent,
-        yoursPercent: totalInvoicedFy > 0 ? Math.round((takeHome / totalInvoicedFy) * 100) : 0,
+        yoursPercent,
         marginalBreakdown: brackets,
         gstClaimableFY: gstClaimableFy,
       },
