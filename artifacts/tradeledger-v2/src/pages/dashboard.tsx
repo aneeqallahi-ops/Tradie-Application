@@ -153,14 +153,29 @@ export default function Dashboard() {
                   <div className="text-xs text-gray-400 mt-3">This is an estimate based on current tax rates and does not constitute financial advice.</div>
                   
                   <div className="flex w-full h-4 rounded-full overflow-hidden mt-6 bg-gray-100">
-                    <div className="bg-[#DCFCE7]" style={{ width: `${financialSummary.yoursPercent}%` }} />
-                    <div className="bg-[#FEF9C3]" style={{ width: `${financialSummary.expensesPercent}%` }} />
-                    <div className="bg-[#FEE2E2]" style={{ width: `${financialSummary.taxPercent}%` }} />
+                    <div className="bg-[#86EFAC]" style={{ width: `${financialSummary.yoursPercent}%` }} />
+                    <div className="bg-[#FDE68A]" style={{ width: `${financialSummary.expensesPercent}%` }} />
+                    <div className="bg-[#FCA5A5]" style={{ width: `${financialSummary.taxPercent}%` }} />
                   </div>
-                  <div className="flex justify-between text-[10px] uppercase font-bold text-gray-400 mt-2">
-                    <span>Yours {financialSummary.yoursPercent}%</span>
-                    <span>Exp {financialSummary.expensesPercent}%</span>
-                    <span>Tax {financialSummary.taxPercent}%</span>
+                  <div className="flex w-full text-[10px] uppercase font-bold text-gray-500 mt-2">
+                    {financialSummary.yoursPercent > 0 && (
+                      <div className="flex items-center gap-1 min-w-0" style={{ width: `${financialSummary.yoursPercent}%` }}>
+                        <span className="w-2 h-2 rounded-full bg-[#86EFAC] flex-shrink-0" />
+                        <span className="truncate">Yours {financialSummary.yoursPercent}%</span>
+                      </div>
+                    )}
+                    {financialSummary.expensesPercent > 0 && (
+                      <div className="flex items-center gap-1 min-w-0 justify-center" style={{ width: `${financialSummary.expensesPercent}%` }}>
+                        <span className="w-2 h-2 rounded-full bg-[#FDE68A] flex-shrink-0" />
+                        <span className="truncate">Exp {financialSummary.expensesPercent}%</span>
+                      </div>
+                    )}
+                    {financialSummary.taxPercent > 0 && (
+                      <div className="flex items-center gap-1 min-w-0 justify-end" style={{ width: `${financialSummary.taxPercent}%` }}>
+                        <span className="w-2 h-2 rounded-full bg-[#FCA5A5] flex-shrink-0" />
+                        <span className="truncate">Tax {financialSummary.taxPercent}%</span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
