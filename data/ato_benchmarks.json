@@ -1,0 +1,224 @@
+{
+  "financialYear": "2023-24",
+  "source": "Australian Taxation Office Small Business Benchmarks (ato.gov.au)",
+  "disclaimer": "ATO benchmark ratios for tradie businesses. Used for comparison only — being outside the range does not necessarily indicate a problem but may flag a review.",
+  "tradeMappings": {
+    "electrician": "electrical",
+    "plumber": "plumbing",
+    "carpenter": "carpentry",
+    "builder": "carpentry",
+    "painter": "painting",
+    "hvac": "hvac",
+    "tiler": "tiling",
+    "landscaper": "landscape_construction",
+    "concreter": "concreting",
+    "other": null
+  },
+  "industries": {
+    "electrical": {
+      "label": "Electrical Services",
+      "bands": [
+        { "key": "50k_200k", "label": "$50k–$200k", "min": 50000, "max": 200000,
+          "totalExpenses": { "low": 0.51, "high": 0.68, "average": 0.59 },
+          "costOfSales": { "low": 0.22, "high": 0.34 },
+          "labour": { "low": 0.21, "high": 0.35 },
+          "motorVehicle": { "low": 0.06, "high": 0.10 } },
+        { "key": "200k_500k", "label": "$200k–$500k", "min": 200000, "max": 500000,
+          "totalExpenses": { "low": 0.59, "high": 0.75, "average": 0.67 },
+          "costOfSales": { "low": 0.26, "high": 0.36 },
+          "labour": { "low": 0.17, "high": 0.30 },
+          "motorVehicle": { "low": 0.04, "high": 0.07 } },
+        { "key": "over_500k", "label": "Over $500k", "min": 500000, "max": null,
+          "totalExpenses": { "low": 0.75, "high": 0.86, "average": 0.81 },
+          "costOfSales": { "low": 0.30, "high": 0.41 },
+          "labour": { "low": 0.23, "high": 0.34 },
+          "motorVehicle": { "low": 0.03, "high": 0.04 } }
+      ]
+    },
+    "plumbing": {
+      "label": "Plumbing Services",
+      "bands": [
+        { "key": "50k_150k", "label": "$50k–$150k", "min": 50000, "max": 150000,
+          "totalExpenses": { "low": 0.50, "high": 0.66, "average": 0.58 },
+          "costOfSales": { "low": 0.20, "high": 0.33 },
+          "labour": { "low": 0.21, "high": 0.34 },
+          "motorVehicle": { "low": 0.07, "high": 0.11 } },
+        { "key": "150k_600k", "label": "$150k–$600k", "min": 150000, "max": 600000,
+          "totalExpenses": { "low": 0.59, "high": 0.74, "average": 0.66 },
+          "costOfSales": { "low": 0.26, "high": 0.35 },
+          "labour": { "low": 0.16, "high": 0.27 },
+          "motorVehicle": { "low": 0.05, "high": 0.07 } },
+        { "key": "over_600k", "label": "Over $600k", "min": 600000, "max": null,
+          "totalExpenses": { "low": 0.75, "high": 0.86, "average": 0.80 },
+          "costOfSales": { "low": 0.29, "high": 0.38 },
+          "labour": { "low": 0.23, "high": 0.33 },
+          "motorVehicle": { "low": 0.03, "high": 0.05 } }
+      ]
+    },
+    "carpentry": {
+      "label": "Carpentry Services",
+      "bands": [
+        { "key": "50k_110k", "label": "$50k–$110k", "min": 50000, "max": 110000,
+          "totalExpenses": { "low": 0.32, "high": 0.50, "average": 0.41 },
+          "labour": { "low": 0.24, "high": 0.39 },
+          "motorVehicle": { "low": 0.08, "high": 0.12 } },
+        { "key": "110k_400k", "label": "$110k–$400k", "min": 110000, "max": 400000,
+          "totalExpenses": { "low": 0.46, "high": 0.66, "average": 0.56 },
+          "labour": { "low": 0.21, "high": 0.35 },
+          "motorVehicle": { "low": 0.05, "high": 0.08 } },
+        { "key": "over_400k", "label": "Over $400k", "min": 400000, "max": null,
+          "totalExpenses": { "low": 0.76, "high": 0.87, "average": 0.81 },
+          "labour": { "low": 0.27, "high": 0.43 },
+          "motorVehicle": { "low": 0.02, "high": 0.04 } }
+      ]
+    },
+    "painting": {
+      "label": "Painting Services",
+      "bands": [
+        { "key": "50k_150k", "label": "$50k–$150k", "min": 50000, "max": 150000,
+          "totalExpenses": { "low": 0.36, "high": 0.51, "average": 0.43 },
+          "costOfSales": { "low": 0.13, "high": 0.19 },
+          "labour": { "low": 0.22, "high": 0.35 },
+          "motorVehicle": { "low": 0.07, "high": 0.11 } },
+        { "key": "150k_600k", "label": "$150k–$600k", "min": 150000, "max": 600000,
+          "totalExpenses": { "low": 0.54, "high": 0.71, "average": 0.63 },
+          "costOfSales": { "low": 0.14, "high": 0.21 },
+          "labour": { "low": 0.26, "high": 0.40 },
+          "motorVehicle": { "low": 0.04, "high": 0.06 } },
+        { "key": "over_600k", "label": "Over $600k", "min": 600000, "max": null,
+          "totalExpenses": { "low": 0.74, "high": 0.86, "average": 0.80 },
+          "costOfSales": { "low": 0.14, "high": 0.21 },
+          "labour": { "low": 0.36, "high": 0.49 },
+          "motorVehicle": { "low": 0.02, "high": 0.04 } }
+      ]
+    },
+    "hvac": {
+      "label": "HVAC, Refrigeration & Heating",
+      "bands": [
+        { "key": "50k_150k", "label": "$50k–$150k", "min": 50000, "max": 150000,
+          "totalExpenses": { "low": 0.54, "high": 0.73, "average": 0.63 },
+          "costOfSales": { "low": 0.26, "high": 0.45 },
+          "rent": { "low": 0.04, "high": 0.08 },
+          "motorVehicle": { "low": 0.07, "high": 0.10 } },
+        { "key": "150k_600k", "label": "$150k–$600k", "min": 150000, "max": 600000,
+          "totalExpenses": { "low": 0.65, "high": 0.78, "average": 0.72 },
+          "costOfSales": { "low": 0.34, "high": 0.49 },
+          "rent": { "low": 0.03, "high": 0.06 },
+          "motorVehicle": { "low": 0.04, "high": 0.06 } },
+        { "key": "over_600k", "label": "Over $600k", "min": 600000, "max": null,
+          "totalExpenses": { "low": 0.79, "high": 0.89, "average": 0.84 },
+          "costOfSales": { "low": 0.41, "high": 0.53 },
+          "rent": { "low": 0.02, "high": 0.03 },
+          "motorVehicle": { "low": 0.02, "high": 0.04 } }
+      ]
+    },
+    "tiling": {
+      "label": "Tiling Services — Floor & Wall",
+      "bands": [
+        { "key": "50k_150k", "label": "$50k–$150k", "min": 50000, "max": 150000,
+          "totalExpenses": { "low": 0.36, "high": 0.52, "average": 0.44 },
+          "costOfSales": { "low": 0.12, "high": 0.19 },
+          "motorVehicle": { "low": 0.07, "high": 0.11 } },
+        { "key": "150k_600k", "label": "$150k–$600k", "min": 150000, "max": 600000,
+          "totalExpenses": { "low": 0.53, "high": 0.71, "average": 0.62 },
+          "costOfSales": { "low": 0.14, "high": 0.21 },
+          "motorVehicle": { "low": 0.05, "high": 0.07 } },
+        { "key": "over_600k", "label": "Over $600k", "min": 600000, "max": null,
+          "totalExpenses": { "low": 0.79, "high": 0.90, "average": 0.84 },
+          "costOfSales": { "low": 0.15, "high": 0.25 },
+          "motorVehicle": { "low": 0.02, "high": 0.03 } }
+      ]
+    },
+    "landscape_construction": {
+      "label": "Landscape Construction",
+      "bands": [
+        { "key": "50k_200k", "label": "$50k–$200k", "min": 50000, "max": 200000,
+          "totalExpenses": { "low": 0.46, "high": 0.64, "average": 0.55 },
+          "costOfSales": { "low": 0.15, "high": 0.30 },
+          "labour": { "low": 0.18, "high": 0.29 },
+          "motorVehicle": { "low": 0.07, "high": 0.11 } },
+        { "key": "200k_500k", "label": "$200k–$500k", "min": 200000, "max": 500000,
+          "totalExpenses": { "low": 0.63, "high": 0.77, "average": 0.70 },
+          "costOfSales": { "low": 0.24, "high": 0.36 },
+          "labour": { "low": 0.17, "high": 0.28 },
+          "motorVehicle": { "low": 0.04, "high": 0.07 } },
+        { "key": "over_500k", "label": "Over $500k", "min": 500000, "max": null,
+          "totalExpenses": { "low": 0.76, "high": 0.86, "average": 0.81 },
+          "costOfSales": { "low": 0.27, "high": 0.38 },
+          "labour": { "low": 0.24, "high": 0.34 },
+          "motorVehicle": { "low": 0.03, "high": 0.05 } }
+      ]
+    },
+    "concreting": {
+      "label": "Concreting Services",
+      "bands": [
+        { "key": "50k_200k", "label": "$50k–$200k", "min": 50000, "max": 200000,
+          "totalExpenses": { "low": 0.38, "high": 0.59, "average": 0.48 },
+          "motorVehicle": { "low": 0.07, "high": 0.12 } },
+        { "key": "200k_500k", "label": "$200k–$500k", "min": 200000, "max": 500000,
+          "totalExpenses": { "low": 0.63, "high": 0.77, "average": 0.70 },
+          "motorVehicle": { "low": 0.05, "high": 0.08 } },
+        { "key": "over_500k", "label": "Over $500k", "min": 500000, "max": null,
+          "totalExpenses": { "low": 0.76, "high": 0.87, "average": 0.81 },
+          "motorVehicle": { "low": 0.03, "high": 0.05 } }
+      ]
+    },
+    "bricklaying": {
+      "label": "Bricklaying Services",
+      "bands": [
+        { "key": "50k_150k", "label": "$50k–$150k", "min": 50000, "max": 150000,
+          "totalExpenses": { "low": 0.29, "high": 0.46, "average": 0.38 },
+          "labour": { "low": 0.23, "high": 0.38 },
+          "motorVehicle": { "low": 0.07, "high": 0.11 } },
+        { "key": "150k_350k", "label": "$150k–$350k", "min": 150000, "max": 350000,
+          "totalExpenses": { "low": 0.51, "high": 0.68, "average": 0.60 },
+          "labour": { "low": 0.29, "high": 0.43 },
+          "motorVehicle": { "low": 0.05, "high": 0.07 } },
+        { "key": "over_350k", "label": "Over $350k", "min": 350000, "max": null,
+          "totalExpenses": { "low": 0.70, "high": 0.84, "average": 0.77 },
+          "labour": { "low": 0.35, "high": 0.49 },
+          "motorVehicle": { "low": 0.03, "high": 0.04 } }
+      ]
+    },
+    "automotive_electrical": {
+      "label": "Automotive Electrical",
+      "bands": [
+        { "key": "50k_250k", "label": "$50k–$250k", "min": 50000, "max": 250000,
+          "totalExpenses": { "low": 0.58, "high": 0.74, "average": 0.66 },
+          "costOfSales": { "low": 0.28, "high": 0.42 },
+          "labour": { "low": 0.19, "high": 0.29 },
+          "rent": { "low": 0.07, "high": 0.12 },
+          "motorVehicle": { "low": 0.05, "high": 0.08 } },
+        { "key": "250k_750k", "label": "$250k–$750k", "min": 250000, "max": 750000,
+          "totalExpenses": { "low": 0.65, "high": 0.80, "average": 0.73 },
+          "costOfSales": { "low": 0.33, "high": 0.43 },
+          "labour": { "low": 0.16, "high": 0.25 },
+          "rent": { "low": 0.05, "high": 0.08 },
+          "motorVehicle": { "low": 0.03, "high": 0.05 } },
+        { "key": "over_750k", "label": "Over $750k", "min": 750000, "max": null,
+          "totalExpenses": { "low": 0.79, "high": 0.87, "average": 0.83 },
+          "costOfSales": { "low": 0.37, "high": 0.46 },
+          "labour": { "low": 0.20, "high": 0.28 },
+          "rent": { "low": 0.03, "high": 0.05 },
+          "motorVehicle": { "low": 0.02, "high": 0.03 } }
+      ]
+    },
+    "roofing": {
+      "label": "Roofing Services",
+      "bands": [
+        { "key": "50k_325k", "label": "$50k–$325k", "min": 50000, "max": 325000,
+          "totalExpenses": { "low": 0.43, "high": 0.63, "average": 0.53 },
+          "labour": { "low": 0.20, "high": 0.33 },
+          "motorVehicle": { "low": 0.06, "high": 0.10 } },
+        { "key": "325k_900k", "label": "$325k–$900k", "min": 325000, "max": 900000,
+          "totalExpenses": { "low": 0.65, "high": 0.80, "average": 0.72 },
+          "labour": { "low": 0.22, "high": 0.35 },
+          "motorVehicle": { "low": 0.04, "high": 0.06 } },
+        { "key": "over_900k", "label": "Over $900k", "min": 900000, "max": null,
+          "totalExpenses": { "low": 0.80, "high": 0.89, "average": 0.84 },
+          "labour": { "low": 0.23, "high": 0.33 },
+          "motorVehicle": { "low": 0.02, "high": 0.03 } }
+      ]
+    }
+  }
+}

@@ -22,7 +22,7 @@ router.put("/settings", requireAuth, async (req: Request, res: Response) => {
     const {
       businessName, abn, gstRegistered, state, email, phone,
       hourlyRate, defaultMarkupPercent, profitFirstTaxPercent,
-      profitFirstExpensesPercent, logoUrl, tradeType
+      profitFirstExpensesPercent, logoUrl, tradeType, annualTurnoverBand
     } = req.body;
 
     const [updated] = await db
@@ -30,7 +30,7 @@ router.put("/settings", requireAuth, async (req: Request, res: Response) => {
       .set({
         businessName, abn, gstRegistered, state, email, phone,
         hourlyRate, defaultMarkupPercent, profitFirstTaxPercent,
-        profitFirstExpensesPercent, logoUrl, tradeType,
+        profitFirstExpensesPercent, logoUrl, tradeType, annualTurnoverBand,
       })
       .where(eq(tradieUsersTable.id, tradieUser.id))
       .returning();

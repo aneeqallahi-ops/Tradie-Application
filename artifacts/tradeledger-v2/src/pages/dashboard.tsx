@@ -7,6 +7,7 @@ import { ChevronRight, Info, Plus, FileText, Camera, Navigation, X, CalendarCloc
 import { Link } from "wouter";
 import { Drawer, DrawerContent, DrawerTrigger, DrawerTitle } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
+import { TaxPositionCard } from "@/components/tax-position-card";
 
 function fmtBasDate(iso: string) {
   const d = new Date(iso);
@@ -190,6 +191,9 @@ export default function Dashboard() {
             </div>
           </DrawerContent>
         </Drawer>
+
+        {/* Tax Position — What You'll Owe */}
+        <TaxPositionCard />
 
         {/* Quick Actions */}
         <div className="bg-secondary rounded-2xl p-2 flex justify-between">

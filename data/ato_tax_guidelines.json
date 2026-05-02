@@ -1,0 +1,111 @@
+{
+  "financialYear": "2025-26",
+  "lastUpdated": "2025-07-01",
+  "source": "Australian Taxation Office (ato.gov.au)",
+  "disclaimer": "Summary of ATO rules for Australian sole-trader tradies. Not financial advice.",
+  "individualTaxBrackets": [
+    { "min": 0, "max": 18200, "rate": 0, "label": "$0 – $18,200", "rateLabel": "0%" },
+    { "min": 18201, "max": 45000, "rate": 0.16, "label": "$18,201 – $45,000", "rateLabel": "16%" },
+    { "min": 45001, "max": 135000, "rate": 0.30, "label": "$45,001 – $135,000", "rateLabel": "30%" },
+    { "min": 135001, "max": 190000, "rate": 0.37, "label": "$135,001 – $190,000", "rateLabel": "37%" },
+    { "min": 190001, "max": null, "rate": 0.45, "label": "Over $190,000", "rateLabel": "45%" }
+  ],
+  "medicareLevy": {
+    "rate": 0.02,
+    "lowIncomeThreshold": 27222,
+    "phaseInUpper": 34028,
+    "phaseInRate": 0.10,
+    "notes": "2% of taxable income. Nil below $27,222; phase-in $27,222–$34,028 at 10c per dollar of excess; full 2% above $34,028."
+  },
+  "medicareLevySurcharge": {
+    "singleThreshold": 101001,
+    "rates": [
+      { "tier": "Tier 1", "min": 101001, "max": 118000, "rate": 0.010 },
+      { "tier": "Tier 2", "min": 118001, "max": 158000, "rate": 0.0125 },
+      { "tier": "Tier 3", "min": 158001, "max": null, "rate": 0.015 }
+    ],
+    "notes": "Applies to Australian residents without an eligible private hospital cover."
+  },
+  "lito": {
+    "maxOffset": 700,
+    "fullThreshold": 37500,
+    "stage1": { "from": 37501, "to": 45000, "taperRate": 0.05, "endValue": 325 },
+    "stage2": { "from": 45001, "to": 66667, "taperRate": 0.015, "endValue": 0 },
+    "notes": "Low Income Tax Offset. Max $700; tapers from $37,501."
+  },
+  "gst": {
+    "rate": 0.10,
+    "registrationThreshold": 75000,
+    "registrationDays": 21,
+    "basFrequency": "quarterly",
+    "basDueDates": ["28 October", "28 February", "28 April", "28 August"],
+    "notes": "Mandatory registration if annual GST turnover ≥ $75,000. Register within 21 days of crossing threshold."
+  },
+  "paygInstalments": {
+    "incomeThreshold": 4000,
+    "taxThreshold": 1000,
+    "notes": "Quarterly prepayments triggered when instalment income ≥ $4,000 AND tax payable ≥ $1,000 on last assessment."
+  },
+  "instantAssetWriteOff": {
+    "fy2025_26Threshold": 20000,
+    "appliesTo": "Small businesses with aggregated turnover < $10M",
+    "notes": "Each asset costing < $20,000 (excl. GST if registered) can be immediately written off. Multiple assets each under threshold all qualify."
+  },
+  "vehicleLogbook": {
+    "centsPerKilometre": 0.88,
+    "maxKilometres": 5000,
+    "logbookMethodMinDays": 84,
+    "logbookValidYears": 5,
+    "notes": "Cents-per-km method: claim up to 5,000 business km/yr at 88c/km, no receipts needed (but evidence of journeys required). Logbook method: 12 weeks of records valid for 5 years; claim actual % business use of all vehicle costs."
+  },
+  "homeOffice": {
+    "fixedRateCentsPerHour": 0.70,
+    "actualMethodAvailable": true,
+    "notes": "Fixed-rate method: 70c per hour for electricity, gas, phone, internet, stationery, computer consumables. Must keep representative diary of hours worked from home. Actual cost method available with detailed records."
+  },
+  "superannuation": {
+    "guaranteeRate": 0.12,
+    "soleTraderRequired": false,
+    "concessionalCap": 30000,
+    "notes": "Sole traders are not required to pay themselves super. Voluntary personal contributions can be tax-deductible after notifying the fund (notice of intent to claim a deduction)."
+  },
+  "tpar": {
+    "dueDate": "28 August",
+    "appliesIndustries": ["building & construction", "cleaning", "courier", "IT", "security", "road freight"],
+    "notes": "Taxable Payments Annual Report due 28 August for prior FY (Jul–Jun). Must report subcontractor payments — name, ABN, address, gross paid, GST."
+  },
+  "deductibleCategories": {
+    "common": [
+      { "key": "tools_equipment", "label": "Tools & Equipment", "examples": ["drills", "saws", "ladders", "test gear"], "rule": "100% deductible if cost < $20,000 (instant write-off). Higher cost depreciated over effective life." },
+      { "key": "ppe", "label": "Protective Clothing & PPE", "examples": ["steel-cap boots", "hi-vis", "gloves", "hard hat", "safety glasses"], "rule": "100% deductible — must be protective or compulsory uniform with logo." },
+      { "key": "vehicle", "label": "Motor Vehicle", "examples": ["fuel", "rego", "servicing", "insurance", "tyres", "depreciation"], "rule": "Cents-per-km (88c, max 5,000km) OR logbook method for actual % business use." },
+      { "key": "phone_internet", "label": "Phone & Internet", "examples": ["mobile plan", "data", "internet"], "rule": "Claim business-use % only. Maintain a 4-week representative diary." },
+      { "key": "training", "label": "Training & Education", "examples": ["licence renewal courses", "first aid", "trade upskilling"], "rule": "Deductible if directly related to current income-earning activity." },
+      { "key": "licences", "label": "Licences, Registrations & Memberships", "examples": ["trade licence", "white card", "industry association"], "rule": "100% deductible if required for the business." },
+      { "key": "insurance", "label": "Business Insurance", "examples": ["public liability", "tool insurance", "income protection"], "rule": "100% deductible. Income protection (premiums for taxable benefits) deductible to individual." },
+      { "key": "subscriptions", "label": "Software & Subscriptions", "examples": ["accounting software", "TradeLedger", "job-management apps"], "rule": "100% deductible if used for business." },
+      { "key": "home_office", "label": "Home Office Running Costs", "examples": ["electricity", "internet share", "stationery"], "rule": "70c/hour fixed rate OR actual cost method with records." },
+      { "key": "subcontractor", "label": "Subcontractor Payments", "examples": ["paying other tradies"], "rule": "100% deductible. Must report on TPAR if in qualifying industry." },
+      { "key": "materials", "label": "Materials & Consumables", "examples": ["timber", "fittings", "wire", "paint"], "rule": "100% deductible as cost of goods sold." },
+      { "key": "bank_fees", "label": "Bank & Merchant Fees", "examples": ["EFTPOS fees", "Stripe fees", "bank charges"], "rule": "100% deductible." }
+    ],
+    "byTrade": {
+      "electrician": ["tools_equipment", "ppe", "vehicle", "phone_internet", "training", "licences", "insurance", "subscriptions", "home_office", "subcontractor", "materials", "bank_fees"],
+      "plumber": ["tools_equipment", "ppe", "vehicle", "phone_internet", "training", "licences", "insurance", "subscriptions", "home_office", "subcontractor", "materials", "bank_fees"],
+      "carpenter": ["tools_equipment", "ppe", "vehicle", "phone_internet", "training", "licences", "insurance", "subscriptions", "home_office", "subcontractor", "materials", "bank_fees"],
+      "builder": ["tools_equipment", "ppe", "vehicle", "phone_internet", "training", "licences", "insurance", "subscriptions", "home_office", "subcontractor", "materials", "bank_fees"],
+      "painter": ["tools_equipment", "ppe", "vehicle", "phone_internet", "training", "licences", "insurance", "subscriptions", "home_office", "subcontractor", "materials", "bank_fees"],
+      "hvac": ["tools_equipment", "ppe", "vehicle", "phone_internet", "training", "licences", "insurance", "subscriptions", "home_office", "subcontractor", "materials", "bank_fees"],
+      "tiler": ["tools_equipment", "ppe", "vehicle", "phone_internet", "training", "licences", "insurance", "subscriptions", "home_office", "subcontractor", "materials", "bank_fees"],
+      "landscaper": ["tools_equipment", "ppe", "vehicle", "phone_internet", "training", "licences", "insurance", "subscriptions", "home_office", "subcontractor", "materials", "bank_fees"],
+      "concreter": ["tools_equipment", "ppe", "vehicle", "phone_internet", "training", "licences", "insurance", "subscriptions", "home_office", "subcontractor", "materials", "bank_fees"],
+      "other": ["tools_equipment", "ppe", "vehicle", "phone_internet", "training", "licences", "insurance", "subscriptions", "home_office", "subcontractor", "materials", "bank_fees"]
+    }
+  },
+  "turnoverBands": [
+    { "key": "under_50k", "label": "Under $50k", "min": 0, "max": 50000 },
+    { "key": "50k_150k", "label": "$50k – $150k", "min": 50000, "max": 150000 },
+    { "key": "150k_600k", "label": "$150k – $600k", "min": 150000, "max": 600000 },
+    { "key": "over_600k", "label": "Over $600k", "min": 600000, "max": null }
+  ]
+}

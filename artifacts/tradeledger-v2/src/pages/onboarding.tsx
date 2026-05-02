@@ -25,7 +25,15 @@ export default function Onboarding() {
     email: "",
     profitFirstTaxPercent: 15,
     profitFirstExpensesPercent: 10,
+    annualTurnoverBand: "",
   });
+
+  const TURNOVER_BANDS = [
+    { value: "under_50k", label: "Under $50k" },
+    { value: "50k_150k", label: "$50k – $150k" },
+    { value: "150k_600k", label: "$150k – $600k" },
+    { value: "over_600k", label: "Over $600k" },
+  ];
 
   const handleNext = () => {
     if (step === 1) {
@@ -46,12 +54,14 @@ export default function Onboarding() {
   };
 
   const handleSubmit = () => {
+    const { annualTurnoverBand, ...rest } = formData;
     onboard.mutate({
       data: {
-        ...formData,
-        tradeType: formData.tradeType || "other",
-        hourlyRate: Number(formData.hourlyRate),
-        defaultMarkupPercent: Number(formData.defaultMarkupPercent),
+        ...rest,
+        tradeType: rest.tradeType || "other",
+        hourlyRate: Number(rest.hourlyRate),
+        defaultMarkupPercent: Number(rest.defaultMarkupPercent),
+        ...(annualTurnoverBand ? { annualTurnoverBand } : {}),
       }
     }, {
       onSuccess: () => {
@@ -148,6 +158,30 @@ export default function Onboarding() {
                   checked={formData.gstRegistered} 
                   onCheckedChange={v => updateField("gstRegistered", v)} 
                 />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Annual Turnover (estimate)</label>
+                <p className="text-xs text-muted-foreground">Used to compare you against ATO industry benchmarks.</p>
+                <div className="grid grid-cols-2 gap-2.5">
+                  {TURNOVER_BANDS.map(band => {
+                    const isSelected = formData.annualTurnoverBand === band.value;
+                    return (
+                      <button
+                        key={band.value}
+                        type="button"
+                        onClick={() => updateField("annualTurnoverBand", band.value)}
+                        className={`p-3 rounded-xl border-2 text-left transition-all ${
+                          isSelected
+                            ? "border-[#1A1A1A] bg-white shadow-sm"
+                            : "border-transparent bg-[#F7F4F1] text-gray-700 hover:border-gray-200"
+                        }`}
+                      >
+                        <span className="text-sm font-semibold">{band.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>

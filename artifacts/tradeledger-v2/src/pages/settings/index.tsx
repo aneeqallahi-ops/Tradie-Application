@@ -35,6 +35,7 @@ export default function Settings() {
     defaultMarkupPercent: "20",
     profitFirstTaxPercent: "15",
     profitFirstExpensesPercent: "10",
+    annualTurnoverBand: "",
   });
 
   useEffect(() => {
@@ -51,9 +52,17 @@ export default function Settings() {
         defaultMarkupPercent: me.user.defaultMarkupPercent?.toString() || "20",
         profitFirstTaxPercent: me.user.profitFirstTaxPercent?.toString() || "15",
         profitFirstExpensesPercent: me.user.profitFirstExpensesPercent?.toString() || "10",
+        annualTurnoverBand: me.user.annualTurnoverBand || "",
       });
     }
   }, [me]);
+
+  const TURNOVER_BANDS = [
+    { value: "under_50k", label: "Under $50k" },
+    { value: "50k_150k", label: "$50k – $150k" },
+    { value: "150k_600k", label: "$150k – $600k" },
+    { value: "over_600k", label: "Over $600k" },
+  ];
 
   const handleLogout = async () => {
     await logout();
@@ -90,6 +99,7 @@ export default function Settings() {
         defaultMarkupPercent: Number(formData.defaultMarkupPercent),
         profitFirstTaxPercent: Number(formData.profitFirstTaxPercent),
         profitFirstExpensesPercent: Number(formData.profitFirstExpensesPercent),
+        ...(formData.annualTurnoverBand ? { annualTurnoverBand: formData.annualTurnoverBand } : {}),
       }
     }, {
       onSuccess: () => {
@@ -335,6 +345,19 @@ export default function Settings() {
                   checked={formData.gstRegistered}
                   onCheckedChange={v => setFormData({ ...formData, gstRegistered: v })}
                 />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-gray-700">Annual Turnover Band</label>
+                <p className="text-xs text-gray-500">Used for ATO benchmark comparisons.</p>
+                <Select value={formData.annualTurnoverBand || undefined} onValueChange={v => setFormData({ ...formData, annualTurnoverBand: v })}>
+                  <SelectTrigger className="h-12 bg-secondary border-none">
+                    <SelectValue placeholder="Select a band" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TURNOVER_BANDS.map(b => <SelectItem key={b.value} value={b.value}>{b.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="text-xs font-bold text-gray-400 uppercase tracking-wider pt-4">Rates</div>

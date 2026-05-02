@@ -14,6 +14,7 @@ import settingsRouter from "./settings";
 import notificationsRouter from "./notifications";
 import uploadsRouter from "./uploads";
 import exportRouter from "./export";
+import taxRouter from "./tax";
 
 const router: IRouter = Router();
 
@@ -32,5 +33,6 @@ router.use(settingsRouter);
 router.use(notificationsRouter);
 router.use(uploadsRouter);
 router.use(exportRouter);
+router.use(taxRouter);
 
 export default router;

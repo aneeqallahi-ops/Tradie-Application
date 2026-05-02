@@ -31,6 +31,8 @@ tags:
     description: User settings
   - name: notifications
     description: Notification management
+  - name: tax
+    description: Tax intelligence and compliance
 
 paths:
   /healthz:
@@ -919,6 +921,21 @@ paths:
         "401":
           description: Unauthorized
 
+  /tax/position:
+    get:
+      operationId: getTaxPosition
+      tags: [tax]
+      summary: Current tax position with EOFY projection
+      responses:
+        "200":
+          description: Tax position
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaxPositionResponse"
+        "401":
+          description: Unauthorized
+
   /notifications:
     get:
       operationId: getNotifications
@@ -1159,6 +1176,9 @@ components:
         tradeType:
           type: string
           nullable: true
+        annualTurnoverBand:
+          type: string
+          nullable: true
         onboardingComplete:
           type: boolean
           nullable: true
@@ -1204,6 +1224,8 @@ components:
         profitFirstExpensesPercent:
           type: number
         tradeType:
+          type: string
+        annualTurnoverBand:
           type: string
       required:
         - businessName
@@ -2083,6 +2105,90 @@ components:
           type: number
         tradeType:
           type: string
+        annualTurnoverBand:
+          type: string
+
+    TaxPositionResponse:
+      type: object
+      properties:
+        financialYear:
+          type: string
+        empty:
+          type: boolean
+        message:
+          type: string
+          nullable: true
+        fyDaysElapsed:
+          type: integer
+        fyDaysTotal:
+          type: integer
+        ytdRevenueExGst:
+          type: number
+        ytdExpenses:
+          type: number
+        ytdBusinessKm:
+          type: number
+        currentSavings:
+          type: number
+        taxableIncomeYtd:
+          type: number
+          nullable: true
+        taxOwedToday:
+          type: number
+        incomeTaxYtd:
+          type: number
+          nullable: true
+        medicareLevyYtd:
+          type: number
+          nullable: true
+        litoYtd:
+          type: number
+          nullable: true
+        vehicleDeductionYtd:
+          type: number
+          nullable: true
+        projectedAnnualIncome:
+          type: number
+          nullable: true
+        projectedAnnualExpenses:
+          type: number
+          nullable: true
+        projectedAnnualVehicleDeduction:
+          type: number
+          nullable: true
+        projectedTaxableIncome:
+          type: number
+          nullable: true
+        projectedTotalTaxEoy:
+          type: number
+        weeklySetAside:
+          type: number
+        recommendedSetAsidePercent:
+          type: number
+        trafficLight:
+          type: string
+        trafficLightReason:
+          type: string
+        brackets:
+          type: array
+          items:
+            $ref: "#/components/schemas/TaxBracket"
+      required:
+        - financialYear
+        - empty
+        - fyDaysElapsed
+        - fyDaysTotal
+        - ytdRevenueExGst
+        - ytdExpenses
+        - ytdBusinessKm
+        - currentSavings
+        - taxOwedToday
+        - projectedTotalTaxEoy
+        - weeklySetAside
+        - recommendedSetAsidePercent
+        - trafficLight
+        - trafficLightReason
+        - brackets
 
     Notification:
       type: object

@@ -31,7 +31,7 @@ A full-stack mobile-first web application for Australian sole trader tradies (pl
 ### Database (PostgreSQL via Drizzle ORM)
 Tables in `lib/db/src/schema/`:
 - `users` + `sessions` — Replit Auth (auth.ts)
-- `tradie_users` — Business profile, settings, tax preferences
+- `tradie_users` — Business profile, settings, tax preferences (incl. `annual_turnover_band` for ATO benchmarking)
 - `clients` — Customer records
 - `quotes` + `quote_line_items` — Quote management with SOPA compliance
 - `jobs` — Job tracking linked to quotes
@@ -40,16 +40,26 @@ Tables in `lib/db/src/schema/`:
 - `vehicle_trips` — ATO 12-week logbook method
 - `subcontractors` + `subcontractor_payments` — TPAR reporting
 - `notifications` — In-app notifications
+- `advisory_requests` — Tax advisory marketplace requests (Module 5, schema only so far)
+- `tax_audit_log` — ATO compliance audit trail of every tax calculation served to a user
 
 ## Key Features
 
 ### Australian Tax Compliance
 - GST: ÷11 method (not ×0.10)
-- 2024-25 marginal tax brackets + LITO + Medicare levy 2%
+- Legacy WYAK card uses 2024-25 brackets (`calculations.ts` — kept stable)
+- New Tax Intelligence layer uses FY2025-26 brackets sourced from `/data/ato_tax_guidelines.json` (single source of truth — never hardcoded)
+- LITO + Medicare levy 2% (with phase-in)
 - BAS quarters with exact due dates
 - ATO travel rate: $0.88/km
 - Financial year: 1 Jul–30 Jun
 - TPAR: Subcontractor payment tracking, due 28 August
+
+### Tax Intelligence & Compliance Layer (in progress)
+- Reference data lives at project root: `/data/ato_tax_guidelines.json` and `/data/ato_benchmarks.json`. Loaded once at startup by `artifacts/api-server/src/lib/taxDataService.ts` — no module reads JSON directly.
+- Every user-facing tax calculation writes to `tax_audit_log` (best-effort; failures don't block the response).
+- Module 1 ✅: `GET /api/tax/position` → owed-today, EOFY projection, weekly set-aside, traffic light. Surfaced in dashboard `TaxPositionCard` with empty/loading/error states + drawer breakdown.
+- Modules 2 (benchmarks), 3 (deductible prompts), 4 (strategy engine), 5 (advisory marketplace) — pending project tasks.
 
 ### Document Numbering
 - Quotes: Q-YYYY-0001 (sequential, 4-digit padded, yearly)
@@ -63,6 +73,11 @@ Tables in `lib/db/src/schema/`:
 ### "What You Actually Keep" (WYAK)
 - Real-time financial summary in a bottom sheet
 - Shows: revenue, GST collected, expenses, vehicle deduction, taxable income, estimated tax, net keep
+
+### "What You'll Owe" (Tax Position card)
+- New dashboard card next to WYAK; reads `GET /api/tax/position`
+- Traffic-light indicator (green/amber/red/grey) + weekly set-aside + EOFY projection
+- Drawer with bracket breakdown, Medicare, LITO and EOFY projection details
 
 ## Design System
 - Background: `#F2EDE8` (warm cream)

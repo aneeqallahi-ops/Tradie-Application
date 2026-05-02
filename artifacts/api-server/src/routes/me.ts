@@ -47,7 +47,7 @@ router.post("/auth/onboard", requireAuth, async (req: Request, res: Response) =>
     const {
       businessName, abn, gstRegistered, state, email, phone,
       hourlyRate, defaultMarkupPercent, profitFirstTaxPercent, profitFirstExpensesPercent,
-      tradeType
+      tradeType, annualTurnoverBand
     } = req.body;
 
     const [updated] = await db
@@ -55,7 +55,7 @@ router.post("/auth/onboard", requireAuth, async (req: Request, res: Response) =>
       .set({
         businessName, abn, gstRegistered, state, email, phone,
         hourlyRate, defaultMarkupPercent, profitFirstTaxPercent, profitFirstExpensesPercent,
-        tradeType,
+        tradeType, annualTurnoverBand,
         onboardingComplete: true,
       })
       .where(eq(tradieUsersTable.id, tradieUser.id))

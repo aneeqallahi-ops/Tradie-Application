@@ -17,6 +17,7 @@ export const tradieUsersTable = pgTable("tradie_users", {
   profitFirstTaxPercent: decimal("profit_first_tax_percent", { precision: 5, scale: 2 }).default("15.00"),
   profitFirstExpensesPercent: decimal("profit_first_expenses_percent", { precision: 5, scale: 2 }).default("10.00"),
   tradeType: varchar("trade_type", { length: 50 }).default("other"),
+  annualTurnoverBand: varchar("annual_turnover_band", { length: 30 }),
   onboardingComplete: boolean("onboarding_complete").default(false),
   vehicleMake: varchar("vehicle_make", { length: 100 }),
   vehicleModel: varchar("vehicle_model", { length: 100 }),
@@ -222,3 +223,33 @@ export const notificationsTable = pgTable("notifications", {
 export const insertNotificationSchema = createInsertSchema(notificationsTable).omit({ id: true, createdAt: true });
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type Notification = typeof notificationsTable.$inferSelect;
+
+export const advisoryRequestsTable = pgTable("advisory_requests", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => tradieUsersTable.id),
+  serviceType: varchar("service_type", { length: 100 }).notNull(),
+  currentIncome: decimal("current_income", { precision: 12, scale: 2 }),
+  helpNeeded: text("help_needed"),
+  urgency: varchar("urgency", { length: 30 }).default("normal"),
+  status: varchar("status", { length: 30 }).default("pending"),
+  sourceModule: varchar("source_module", { length: 50 }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertAdvisoryRequestSchema = createInsertSchema(advisoryRequestsTable).omit({ id: true, createdAt: true });
+export type InsertAdvisoryRequest = z.infer<typeof insertAdvisoryRequestSchema>;
+export type AdvisoryRequest = typeof advisoryRequestsTable.$inferSelect;
+
+export const taxAuditLogTable = pgTable("tax_audit_log", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => tradieUsersTable.id),
+  calculationType: varchar("calculation_type", { length: 100 }).notNull(),
+  inputValues: text("input_values"),
+  ruleApplied: varchar("rule_applied", { length: 255 }),
+  result: text("result"),
+  calculatedAt: timestamp("calculated_at").defaultNow(),
+});
+
+export const insertTaxAuditLogSchema = createInsertSchema(taxAuditLogTable).omit({ id: true, calculatedAt: true });
+export type InsertTaxAuditLog = z.infer<typeof insertTaxAuditLogSchema>;
+export type TaxAuditLog = typeof taxAuditLogTable.$inferSelect;
