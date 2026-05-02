@@ -17,8 +17,11 @@ import type {
 } from "@tanstack/react-query";
 
 import type {
+  AdvisoryRequestCreatedResponse,
+  AdvisoryRequestsResponse,
   Client,
   ClientDetail,
+  CreateAdvisoryRequestInput,
   CreateClientBody,
   CreateExpenseBody,
   CreateInvoiceBody,
@@ -4104,6 +4107,171 @@ export function useGetTaxStrategies<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary List the current user's advisory requests
+ */
+export const getGetAdvisoryRequestsUrl = () => {
+  return `/api/advisory/requests`;
+};
+
+export const getAdvisoryRequests = async (
+  options?: RequestInit,
+): Promise<AdvisoryRequestsResponse> => {
+  return customFetch<AdvisoryRequestsResponse>(getGetAdvisoryRequestsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetAdvisoryRequestsQueryKey = () => {
+  return [`/api/advisory/requests`] as const;
+};
+
+export const getGetAdvisoryRequestsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAdvisoryRequests>>,
+  TError = ErrorType<void>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdvisoryRequests>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetAdvisoryRequestsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getAdvisoryRequests>>
+  > = ({ signal }) => getAdvisoryRequests({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAdvisoryRequests>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAdvisoryRequestsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAdvisoryRequests>>
+>;
+export type GetAdvisoryRequestsQueryError = ErrorType<void>;
+
+/**
+ * @summary List the current user's advisory requests
+ */
+
+export function useGetAdvisoryRequests<
+  TData = Awaited<ReturnType<typeof getAdvisoryRequests>>,
+  TError = ErrorType<void>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdvisoryRequests>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAdvisoryRequestsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create a new advisory request
+ */
+export const getCreateAdvisoryRequestUrl = () => {
+  return `/api/advisory/requests`;
+};
+
+export const createAdvisoryRequest = async (
+  createAdvisoryRequestInput: CreateAdvisoryRequestInput,
+  options?: RequestInit,
+): Promise<AdvisoryRequestCreatedResponse> => {
+  return customFetch<AdvisoryRequestCreatedResponse>(
+    getCreateAdvisoryRequestUrl(),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(createAdvisoryRequestInput),
+    },
+  );
+};
+
+export const getCreateAdvisoryRequestMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createAdvisoryRequest>>,
+    TError,
+    { data: BodyType<CreateAdvisoryRequestInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createAdvisoryRequest>>,
+  TError,
+  { data: BodyType<CreateAdvisoryRequestInput> },
+  TContext
+> => {
+  const mutationKey = ["createAdvisoryRequest"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createAdvisoryRequest>>,
+    { data: BodyType<CreateAdvisoryRequestInput> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createAdvisoryRequest(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateAdvisoryRequestMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createAdvisoryRequest>>
+>;
+export type CreateAdvisoryRequestMutationBody =
+  BodyType<CreateAdvisoryRequestInput>;
+export type CreateAdvisoryRequestMutationError = ErrorType<void>;
+
+/**
+ * @summary Create a new advisory request
+ */
+export const useCreateAdvisoryRequest = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createAdvisoryRequest>>,
+    TError,
+    { data: BodyType<CreateAdvisoryRequestInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createAdvisoryRequest>>,
+  TError,
+  { data: BodyType<CreateAdvisoryRequestInput> },
+  TContext
+> => {
+  return useMutation(getCreateAdvisoryRequestMutationOptions(options));
+};
 
 /**
  * @summary List notifications

@@ -6,10 +6,16 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./advisoryRequest";
+export * from "./advisoryRequestCreatedResponse";
+export * from "./advisoryRequestsResponse";
 export * from "./authUser";
 export * from "./basPosition";
 export * from "./client";
 export * from "./clientDetail";
+export * from "./createAdvisoryRequestInput";
+export * from "./createAdvisoryRequestInputSourceModule";
+export * from "./createAdvisoryRequestInputUrgency";
 export * from "./createClientBody";
 export * from "./createExpenseBody";
 export * from "./createInvoiceBody";

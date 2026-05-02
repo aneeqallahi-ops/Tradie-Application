@@ -15,6 +15,7 @@ import notificationsRouter from "./notifications";
 import uploadsRouter from "./uploads";
 import exportRouter from "./export";
 import taxRouter from "./tax";
+import advisoryRouter from "./advisory";
 
 const router: IRouter = Router();
 
@@ -34,5 +35,6 @@ router.use(notificationsRouter);
 router.use(uploadsRouter);
 router.use(exportRouter);
 router.use(taxRouter);
+router.use(advisoryRouter);
 
 export default router;

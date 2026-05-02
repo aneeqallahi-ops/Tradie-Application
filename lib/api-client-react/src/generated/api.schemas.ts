@@ -512,6 +512,54 @@ export interface TaxStrategiesResponse {
   strategies: TaxStrategy[];
 }
 
+export interface AdvisoryRequest {
+  id: number;
+  userId?: number | null;
+  serviceType: string;
+  currentIncome?: string | null;
+  helpNeeded?: string | null;
+  urgency?: string | null;
+  status?: string | null;
+  sourceModule?: string | null;
+  createdAt?: string | null;
+}
+
+export type CreateAdvisoryRequestInputUrgency =
+  (typeof CreateAdvisoryRequestInputUrgency)[keyof typeof CreateAdvisoryRequestInputUrgency];
+
+export const CreateAdvisoryRequestInputUrgency = {
+  this_week: "this_week",
+  this_month: "this_month",
+  no_rush: "no_rush",
+} as const;
+
+export type CreateAdvisoryRequestInputSourceModule =
+  (typeof CreateAdvisoryRequestInputSourceModule)[keyof typeof CreateAdvisoryRequestInputSourceModule];
+
+export const CreateAdvisoryRequestInputSourceModule = {
+  manual: "manual",
+  tax_position: "tax_position",
+  benchmark_alert: "benchmark_alert",
+  strategy_engine: "strategy_engine",
+  deductible_prompt: "deductible_prompt",
+} as const;
+
+export interface CreateAdvisoryRequestInput {
+  serviceType: string;
+  currentIncome?: number | null;
+  helpNeeded?: string | null;
+  urgency?: CreateAdvisoryRequestInputUrgency;
+  sourceModule?: CreateAdvisoryRequestInputSourceModule;
+}
+
+export interface AdvisoryRequestsResponse {
+  requests: AdvisoryRequest[];
+}
+
+export interface AdvisoryRequestCreatedResponse {
+  request: AdvisoryRequest;
+}
+
 export interface SuccessResponse {
   success: boolean;
   message?: string | null;

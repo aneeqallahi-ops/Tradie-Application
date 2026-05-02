@@ -1002,6 +1002,42 @@ paths:
         "401":
           description: Unauthorized
 
+  /advisory/requests:
+    get:
+      operationId: getAdvisoryRequests
+      tags: [advisory]
+      summary: List the current user's advisory requests
+      responses:
+        "200":
+          description: Advisory requests list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdvisoryRequestsResponse"
+        "401":
+          description: Unauthorized
+    post:
+      operationId: createAdvisoryRequest
+      tags: [advisory]
+      summary: Create a new advisory request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAdvisoryRequestInput"
+      responses:
+        "201":
+          description: Created advisory request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdvisoryRequestCreatedResponse"
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+
   /notifications:
     get:
       operationId: getNotifications
@@ -2455,6 +2491,76 @@ components:
         - empty
         - totalPotentialSaving
         - strategies
+
+    AdvisoryRequest:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+          nullable: true
+        serviceType:
+          type: string
+        currentIncome:
+          type: string
+          nullable: true
+        helpNeeded:
+          type: string
+          nullable: true
+        urgency:
+          type: string
+          nullable: true
+        status:
+          type: string
+          nullable: true
+        sourceModule:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          nullable: true
+      required:
+        - id
+        - serviceType
+
+    CreateAdvisoryRequestInput:
+      type: object
+      properties:
+        serviceType:
+          type: string
+        currentIncome:
+          type: number
+          nullable: true
+        helpNeeded:
+          type: string
+          nullable: true
+        urgency:
+          type: string
+          enum: [this_week, this_month, no_rush]
+        sourceModule:
+          type: string
+          enum: [manual, tax_position, benchmark_alert, strategy_engine, deductible_prompt]
+      required:
+        - serviceType
+
+    AdvisoryRequestsResponse:
+      type: object
+      properties:
+        requests:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdvisoryRequest"
+      required:
+        - requests
+
+    AdvisoryRequestCreatedResponse:
+      type: object
+      properties:
+        request:
+          $ref: "#/components/schemas/AdvisoryRequest"
+      required:
+        - request
 
     SuccessResponse:
       type: object

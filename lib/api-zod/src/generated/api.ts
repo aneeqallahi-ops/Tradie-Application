@@ -1542,6 +1542,44 @@ export const GetTaxStrategiesResponse = zod.object({
 });
 
 /**
+ * @summary List the current user's advisory requests
+ */
+export const GetAdvisoryRequestsResponse = zod.object({
+  requests: zod.array(
+    zod.object({
+      id: zod.number(),
+      userId: zod.number().nullish(),
+      serviceType: zod.string(),
+      currentIncome: zod.string().nullish(),
+      helpNeeded: zod.string().nullish(),
+      urgency: zod.string().nullish(),
+      status: zod.string().nullish(),
+      sourceModule: zod.string().nullish(),
+      createdAt: zod.string().nullish(),
+    }),
+  ),
+});
+
+/**
+ * @summary Create a new advisory request
+ */
+export const CreateAdvisoryRequestBody = zod.object({
+  serviceType: zod.string(),
+  currentIncome: zod.number().nullish(),
+  helpNeeded: zod.string().nullish(),
+  urgency: zod.enum(["this_week", "this_month", "no_rush"]).optional(),
+  sourceModule: zod
+    .enum([
+      "manual",
+      "tax_position",
+      "benchmark_alert",
+      "strategy_engine",
+      "deductible_prompt",
+    ])
+    .optional(),
+});
+
+/**
  * @summary List notifications
  */
 export const GetNotificationsResponseItem = zod.object({

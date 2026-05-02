@@ -23,6 +23,7 @@ import Subcontractors from "./pages/subcontractors";
 import Notifications from "./pages/notifications";
 import Onboarding from "./pages/onboarding";
 import TaxPage from "./pages/tax";
+import AdvisoryPage from "./pages/advisory";
 import NotFound from "./pages/not-found";
 
 const queryClient = new QueryClient();
@@ -78,6 +79,8 @@ function Router() {
       <Route path="/subcontractors" component={() => <ProtectedRoute component={Subcontractors} />} />
       <Route path="/notifications" component={() => <ProtectedRoute component={Notifications} />} />
       <Route path="/tax" component={() => <ProtectedRoute component={TaxPage} />} />
+      <Route path="/advisory" component={() => <ProtectedRoute component={AdvisoryPage} />} />
+      <Route path="/advisory/new" component={() => <ProtectedRoute component={AdvisoryPage} />} />
       <Route component={NotFound} />
     </Switch>
   );
