@@ -1,6 +1,6 @@
 import React, { useState, useContext, createContext, useCallback } from "react";
 import { Link, useLocation } from "wouter";
-import { Home, FileText, Briefcase, Receipt, Settings2, Bell, X, CheckCheck } from "lucide-react";
+import { Home, FileText, Briefcase, Receipt, Settings2, Bell, X, CheckCheck, Calculator } from "lucide-react";
 import { useGetDashboard, useGetNotifications, useMarkAllNotificationsRead, useMarkNotificationRead } from "@workspace/api-client-react";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 import { useQueryClient } from "@tanstack/react-query";
@@ -12,9 +12,9 @@ export function BottomNav() {
 
   const navItems = [
     { icon: Home, label: "Home", href: "/" },
-    { icon: FileText, label: "Quotes", href: "/quotes" },
     { icon: Briefcase, label: "Jobs", href: "/jobs" },
     { icon: Receipt, label: "Expenses", href: "/expenses" },
+    { icon: Calculator, label: "Tax", href: "/tax" },
     { icon: Settings2, label: "Settings", href: "/settings" },
   ];
 

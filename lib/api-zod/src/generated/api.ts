@@ -1452,6 +1452,71 @@ export const GetTaxPositionResponse = zod.object({
 });
 
 /**
+ * @summary Compare user's expense ratios against ATO industry benchmarks
+ */
+export const GetTaxBenchmarksResponse = zod.object({
+  financialYear: zod.string(),
+  empty: zod.boolean(),
+  message: zod.string().nullish(),
+  industry: zod.string().nullish(),
+  industryLabel: zod.string().nullish(),
+  bandLabel: zod.string().nullish(),
+  ytdRevenueExGst: zod.number(),
+  ratios: zod.array(
+    zod.object({
+      key: zod.string(),
+      label: zod.string(),
+      userValue: zod.number().nullish(),
+      benchmarkLow: zod.number().nullish(),
+      benchmarkHigh: zod.number().nullish(),
+      status: zod.string(),
+      interpretation: zod.string(),
+      auditTrigger: zod.boolean(),
+    }),
+  ),
+  hasAuditTriggers: zod.boolean(),
+});
+
+/**
+ * @summary Get contextual deductible prompts for the user's trade type
+ */
+export const GetTaxPromptsResponse = zod.object({
+  tradeType: zod.string().nullish(),
+  prompts: zod.array(
+    zod.object({
+      key: zod.string(),
+      label: zod.string(),
+      rule: zod.string(),
+      examples: zod.array(zod.string()),
+      dismissed: zod.boolean(),
+      isMissed: zod.boolean(),
+    }),
+  ),
+  missedDeductions: zod.array(
+    zod.object({
+      key: zod.string(),
+      label: zod.string(),
+      rule: zod.string(),
+      examples: zod.array(zod.string()),
+      dismissed: zod.boolean(),
+      isMissed: zod.boolean(),
+    }),
+  ),
+});
+
+/**
+ * @summary Dismiss a deductible prompt for 30 days
+ */
+export const DismissPromptParams = zod.object({
+  promptKey: zod.coerce.string(),
+});
+
+export const DismissPromptResponse = zod.object({
+  success: zod.boolean(),
+  message: zod.string().nullish(),
+});
+
+/**
  * @summary List notifications
  */
 export const GetNotificationsResponseItem = zod.object({

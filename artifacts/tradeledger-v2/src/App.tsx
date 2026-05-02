@@ -22,6 +22,7 @@ import Settings from "./pages/settings";
 import Subcontractors from "./pages/subcontractors";
 import Notifications from "./pages/notifications";
 import Onboarding from "./pages/onboarding";
+import TaxPage from "./pages/tax";
 import NotFound from "./pages/not-found";
 
 const queryClient = new QueryClient();
@@ -76,6 +77,7 @@ function Router() {
       <Route path="/settings" component={() => <ProtectedRoute component={Settings} />} />
       <Route path="/subcontractors" component={() => <ProtectedRoute component={Subcontractors} />} />
       <Route path="/notifications" component={() => <ProtectedRoute component={Notifications} />} />
+      <Route path="/tax" component={() => <ProtectedRoute component={TaxPage} />} />
       <Route component={NotFound} />
     </Switch>
   );

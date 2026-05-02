@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { useGetDashboard, useGetTparSummary } from "@workspace/api-client-react";
+import { useGetDashboard, useGetTparSummary, useGetTaxPrompts } from "@workspace/api-client-react";
 import { Header, Layout } from "@/components/layout";
 import { formatCurrency, formatPercent } from "@/lib/format";
 import { StatusPill } from "@/components/status-pill";
-import { ChevronRight, Info, Plus, FileText, Camera, Navigation, X, CalendarClock, Users } from "lucide-react";
+import { ChevronRight, Info, Plus, FileText, Camera, Navigation, X, CalendarClock, Users, Lightbulb } from "lucide-react";
 import { Link } from "wouter";
 import { Drawer, DrawerContent, DrawerTrigger, DrawerTitle } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ function fmtBasDate(iso: string) {
 export default function Dashboard() {
   const { data, isLoading } = useGetDashboard();
   const { data: tpar } = useGetTparSummary();
+  const { data: prompts } = useGetTaxPrompts();
 
   if (isLoading || !data) {
     return (
@@ -194,6 +195,27 @@ export default function Dashboard() {
 
         {/* Tax Position — What You'll Owe */}
         <TaxPositionCard />
+
+        {/* Missed Deductions Card */}
+        {prompts && prompts.missedDeductions.length > 0 && (
+          <Link href="/tax" className="block bg-blue-50 border border-blue-200 rounded-2xl p-4 hover:bg-blue-100 active:scale-[0.98] transition-all">
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
+                <Lightbulb className="w-5 h-5 text-blue-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="font-bold text-blue-900 text-sm">
+                  {prompts.missedDeductions.length} deduction{prompts.missedDeductions.length !== 1 ? "s" : ""} you might have missed
+                </div>
+                <div className="text-xs text-blue-700 mt-0.5 line-clamp-1">
+                  {prompts.missedDeductions.slice(0, 3).map(d => d.label).join(", ")}
+                  {prompts.missedDeductions.length > 3 ? " & more" : ""}
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-blue-400 shrink-0 mt-1" />
+            </div>
+          </Link>
+        )}
 
         {/* Quick Actions */}
         <div className="bg-secondary rounded-2xl p-2 flex justify-between">

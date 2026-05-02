@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import { useLocation, useSearch } from "wouter";
-import { useCreateExpense, useGetJobs, useGetMe } from "@workspace/api-client-react";
+import { useCreateExpense, useGetJobs, useGetMe, useGetTaxPrompts } from "@workspace/api-client-react";
 import { Header, Layout } from "@/components/layout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Camera, CheckCircle2 } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
 import { TRADE_EXPENSE_CATEGORIES, type TradeType } from "@/lib/trade-config";
+import DeductiblePrompt from "@/components/deductible-prompt";
 
 export default function NewExpense() {
   const [, setLocation] = useLocation();
@@ -25,6 +26,7 @@ export default function NewExpense() {
 
   const tradeType = (me?.user?.tradeType ?? "other") as TradeType;
   const categories = TRADE_EXPENSE_CATEGORIES[tradeType] ?? TRADE_EXPENSE_CATEGORIES.other;
+  const { data: prompts, refetch: refetchPrompts } = useGetTaxPrompts();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
@@ -227,6 +229,26 @@ export default function NewExpense() {
             })}
           </div>
         </div>
+
+        {/* Contextual deductible prompt for selected category */}
+        {formData.category && (() => {
+          const matchingPrompt = prompts?.prompts?.find(
+            p => p.key === formData.category && !p.dismissed
+          );
+          if (!matchingPrompt) return null;
+          return (
+            <div className="animate-in slide-in-from-top-2">
+              <DeductiblePrompt
+                promptKey={matchingPrompt.key}
+                label={`Can I claim ${matchingPrompt.label}?`}
+                rule={matchingPrompt.rule}
+                examples={matchingPrompt.examples}
+                onDismiss={() => refetchPrompts()}
+                compact
+              />
+            </div>
+          );
+        })()}
 
         {isSubcontractor && (
           <div className="bg-amber-50 border border-amber-200 rounded-3xl p-5 space-y-4 animate-in slide-in-from-top-2">

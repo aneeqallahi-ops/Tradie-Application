@@ -253,3 +253,14 @@ export const taxAuditLogTable = pgTable("tax_audit_log", {
 export const insertTaxAuditLogSchema = createInsertSchema(taxAuditLogTable).omit({ id: true, calculatedAt: true });
 export type InsertTaxAuditLog = z.infer<typeof insertTaxAuditLogSchema>;
 export type TaxAuditLog = typeof taxAuditLogTable.$inferSelect;
+
+export const userPromptDismissalsTable = pgTable("user_prompt_dismissals", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => tradieUsersTable.id).notNull(),
+  promptKey: varchar("prompt_key", { length: 100 }).notNull(),
+  dismissedAt: timestamp("dismissed_at").defaultNow().notNull(),
+});
+
+export const insertUserPromptDismissalSchema = createInsertSchema(userPromptDismissalsTable).omit({ id: true, dismissedAt: true });
+export type InsertUserPromptDismissal = z.infer<typeof insertUserPromptDismissalSchema>;
+export type UserPromptDismissal = typeof userPromptDismissalsTable.$inferSelect;

@@ -452,6 +452,44 @@ export interface UploadReceiptResponse {
   filename?: string | null;
 }
 
+export interface TaxBenchmarkRatio {
+  key: string;
+  label: string;
+  userValue?: number | null;
+  benchmarkLow?: number | null;
+  benchmarkHigh?: number | null;
+  status: string;
+  interpretation: string;
+  auditTrigger: boolean;
+}
+
+export interface TaxBenchmarksResponse {
+  financialYear: string;
+  empty: boolean;
+  message?: string | null;
+  industry?: string | null;
+  industryLabel?: string | null;
+  bandLabel?: string | null;
+  ytdRevenueExGst: number;
+  ratios: TaxBenchmarkRatio[];
+  hasAuditTriggers: boolean;
+}
+
+export interface DeductiblePromptItem {
+  key: string;
+  label: string;
+  rule: string;
+  examples: string[];
+  dismissed: boolean;
+  isMissed: boolean;
+}
+
+export interface TaxPromptsResponse {
+  tradeType?: string | null;
+  prompts: DeductiblePromptItem[];
+  missedDeductions: DeductiblePromptItem[];
+}
+
 export interface SuccessResponse {
   success: boolean;
   message?: string | null;

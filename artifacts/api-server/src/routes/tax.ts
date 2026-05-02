@@ -1,13 +1,30 @@
 import { Router, type IRouter, type Request, type Response } from "express";
-import { db, invoicesTable, expensesTable, vehicleTripsTable, taxAuditLogTable } from "@workspace/db";
-import { eq, and, gte, lte, sql, sum } from "drizzle-orm";
+import {
+  db,
+  invoicesTable,
+  expensesTable,
+  vehicleTripsTable,
+  taxAuditLogTable,
+  userPromptDismissalsTable,
+} from "@workspace/db";
+import { eq, and, gte, lte, sql, sum, inArray } from "drizzle-orm";
 import { requireAuth } from "../middlewares/requireAuth";
 import { getOrCreateTradieUser, getReplitUserId } from "./me";
 import { getFinancialYearRange } from "../lib/calculations";
-import { calculateTaxPosition, getFinancialYear } from "../lib/taxDataService";
+import {
+  calculateTaxPosition,
+  getFinancialYear,
+  getBenchmarks,
+  getDeductibleCategories,
+  pickBenchmarkBandForRevenue,
+  type BenchmarkBand,
+} from "../lib/taxDataService";
 
 const router: IRouter = Router();
 
+// ---------------------------------------------------------------------------
+// GET /tax/position
+// ---------------------------------------------------------------------------
 router.get("/tax/position", requireAuth, async (req: Request, res: Response) => {
   try {
     const tradieUser = await getOrCreateTradieUser(getReplitUserId(req));
@@ -124,6 +141,316 @@ router.get("/tax/position", requireAuth, async (req: Request, res: Response) => 
     });
   } catch (err) {
     req.log.error({ err }, "Failed to compute tax position");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Helpers for benchmark ratio computation
+// ---------------------------------------------------------------------------
+
+// Maps expense categories in the app to ATO benchmark ratio keys.
+const CATEGORY_TO_RATIO: Record<string, string> = {
+  materials: "costOfSales",
+  tools_equipment: "costOfSales",
+  subcontractor: "labour",
+  subcontractor_payment: "labour",
+  vehicle: "motorVehicle",
+  rent: "rent",
+};
+
+function computeBenchmarkRatio(
+  ratioKey: keyof BenchmarkBand,
+  ratioLabel: string,
+  userValue: number | null,
+  band: BenchmarkBand | null
+): {
+  key: string;
+  label: string;
+  userValue: number | null;
+  benchmarkLow: number | null;
+  benchmarkHigh: number | null;
+  status: string;
+  interpretation: string;
+  auditTrigger: boolean;
+} {
+  const range = band ? (band[ratioKey] as { low: number; high: number } | undefined) : undefined;
+
+  if (userValue === null || range === undefined) {
+    return {
+      key: ratioKey,
+      label: ratioLabel,
+      userValue,
+      benchmarkLow: range?.low ?? null,
+      benchmarkHigh: range?.high ?? null,
+      status: "no_data",
+      interpretation: "No data available for comparison.",
+      auditTrigger: false,
+    };
+  }
+
+  const { low, high } = range;
+  const AUDIT_BUFFER = 0.05;
+  let status: string;
+  let interpretation: string;
+  let auditTrigger = false;
+
+  if (userValue >= low && userValue <= high) {
+    status = "within";
+    interpretation = `Your ${ratioLabel.toLowerCase()} ratio of ${(userValue * 100).toFixed(1)}% sits within the ATO benchmark range of ${(low * 100).toFixed(0)}%–${(high * 100).toFixed(0)}%. You're in the safe zone.`;
+  } else if (userValue < low) {
+    const gap = low - userValue;
+    auditTrigger = gap > AUDIT_BUFFER;
+    status = "below";
+    interpretation = `Your ${ratioLabel.toLowerCase()} ratio of ${(userValue * 100).toFixed(1)}% is below the ATO benchmark low of ${(low * 100).toFixed(0)}%.${auditTrigger ? " This may attract ATO attention as it's more than 5% outside the safe band." : " This is just below the safe band — review your records."}`;
+  } else {
+    const gap = userValue - high;
+    auditTrigger = gap > AUDIT_BUFFER;
+    status = "above";
+    interpretation = `Your ${ratioLabel.toLowerCase()} ratio of ${(userValue * 100).toFixed(1)}% is above the ATO benchmark high of ${(high * 100).toFixed(0)}%.${auditTrigger ? " This may attract ATO attention as it's more than 5% outside the safe band." : " This is just above the safe band — ensure all expenses are fully documented."}`;
+  }
+
+  return {
+    key: ratioKey,
+    label: ratioLabel,
+    userValue,
+    benchmarkLow: low,
+    benchmarkHigh: high,
+    status,
+    interpretation,
+    auditTrigger,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// GET /tax/benchmarks
+// ---------------------------------------------------------------------------
+router.get("/tax/benchmarks", requireAuth, async (req: Request, res: Response) => {
+  try {
+    const tradieUser = await getOrCreateTradieUser(getReplitUserId(req));
+    const userId = tradieUser.id;
+    const tradeType = tradieUser.tradeType;
+    const turnoverBand = tradieUser.annualTurnoverBand;
+
+    const { start: fyStart, end: fyEnd } = getFinancialYearRange();
+
+    const [revRow] = await db
+      .select({ total: sum(invoicesTable.total), gst: sum(invoicesTable.gstAmount) })
+      .from(invoicesTable)
+      .where(and(
+        eq(invoicesTable.userId, userId),
+        gte(invoicesTable.createdAt, fyStart),
+        lte(invoicesTable.createdAt, fyEnd)
+      ));
+
+    const totalRevInc = parseFloat(revRow.total ?? "0");
+    const gstCollected = parseFloat(revRow.gst ?? "0");
+    const ytdRevenueExGst = Math.max(0, totalRevInc - gstCollected);
+
+    const benchmarkInfo = getBenchmarks(tradeType, turnoverBand);
+
+    if (!benchmarkInfo.industry) {
+      res.json({
+        financialYear: getFinancialYear(),
+        empty: true,
+        message: "Set your trade type in Settings to see your benchmarks.",
+        industry: null,
+        industryLabel: null,
+        bandLabel: null,
+        ytdRevenueExGst,
+        ratios: [],
+        hasAuditTriggers: false,
+      });
+      return;
+    }
+
+    if (ytdRevenueExGst === 0) {
+      res.json({
+        financialYear: getFinancialYear(),
+        empty: true,
+        message: "Log some revenue to compare your ratios against ATO benchmarks.",
+        industry: benchmarkInfo.industry,
+        industryLabel: benchmarkInfo.label,
+        bandLabel: null,
+        ytdRevenueExGst,
+        ratios: [],
+        hasAuditTriggers: false,
+      });
+      return;
+    }
+
+    // Get expense totals grouped by category
+    const expensesByCategory = await db
+      .select({
+        category: expensesTable.category,
+        total: sum(expensesTable.amount),
+        gstClaimable: sum(expensesTable.gstClaimable),
+      })
+      .from(expensesTable)
+      .where(and(
+        eq(expensesTable.userId, userId),
+        gte(expensesTable.createdAt, fyStart),
+        lte(expensesTable.createdAt, fyEnd)
+      ))
+      .groupBy(expensesTable.category);
+
+    // Sum expenses into ratio buckets (ex-GST)
+    const ratioBuckets: Record<string, number> = {
+      totalExpenses: 0,
+      costOfSales: 0,
+      labour: 0,
+      motorVehicle: 0,
+      rent: 0,
+    };
+
+    for (const row of expensesByCategory) {
+      const exGst = Math.max(0, parseFloat(row.total ?? "0") - parseFloat(row.gstClaimable ?? "0"));
+      ratioBuckets.totalExpenses += exGst;
+      const mapped = CATEGORY_TO_RATIO[row.category ?? ""];
+      if (mapped) ratioBuckets[mapped] += exGst;
+    }
+
+    // Pick the benchmark band by actual YTD revenue (most accurate at time of request)
+    const industryData = benchmarkInfo.bands.length > 0
+      ? { label: benchmarkInfo.label ?? "", bands: benchmarkInfo.bands }
+      : null;
+    const band = industryData
+      ? pickBenchmarkBandForRevenue(industryData as Parameters<typeof pickBenchmarkBandForRevenue>[0], ytdRevenueExGst)
+      : benchmarkInfo.band;
+
+    const ratioDefinitions: Array<{ key: keyof BenchmarkBand; label: string }> = [
+      { key: "totalExpenses", label: "Total Expenses" },
+      { key: "costOfSales", label: "Cost of Sales" },
+      { key: "labour", label: "Labour" },
+      { key: "motorVehicle", label: "Motor Vehicle" },
+      { key: "rent", label: "Rent" },
+    ];
+
+    const ratios = ratioDefinitions
+      .filter(d => band && band[d.key] !== undefined)
+      .map(d => {
+        const userValue = ratioBuckets[d.key] !== undefined
+          ? ratioBuckets[d.key] / ytdRevenueExGst
+          : null;
+        return computeBenchmarkRatio(d.key, d.label, userValue, band);
+      });
+
+    const hasAuditTriggers = ratios.some(r => r.auditTrigger);
+
+    // Compliance: log benchmark calculation
+    await db.insert(taxAuditLogTable).values({
+      userId,
+      calculationType: "benchmark_comparison",
+      inputValues: JSON.stringify({ ytdRevenueExGst, ratioBuckets, tradeType, turnoverBand }),
+      ruleApplied: `FY${getFinancialYear()} ATO benchmarks — ${benchmarkInfo.label ?? tradeType}`,
+      result: JSON.stringify({ band: band?.key, ratios: ratios.map(r => ({ key: r.key, status: r.status, auditTrigger: r.auditTrigger })) }),
+    });
+
+    res.json({
+      financialYear: getFinancialYear(),
+      empty: false,
+      industry: benchmarkInfo.industry,
+      industryLabel: benchmarkInfo.label,
+      bandLabel: band?.label ?? null,
+      ytdRevenueExGst,
+      ratios,
+      hasAuditTriggers,
+    });
+  } catch (err) {
+    req.log.error({ err }, "Failed to compute tax benchmarks");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// GET /tax/prompts
+// ---------------------------------------------------------------------------
+router.get("/tax/prompts", requireAuth, async (req: Request, res: Response) => {
+  try {
+    const tradieUser = await getOrCreateTradieUser(getReplitUserId(req));
+    const userId = tradieUser.id;
+    const tradeType = tradieUser.tradeType;
+
+    const categories = getDeductibleCategories(tradeType);
+
+    // Fetch dismissals within last 30 days
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const dismissals = await db
+      .select({ promptKey: userPromptDismissalsTable.promptKey })
+      .from(userPromptDismissalsTable)
+      .where(and(
+        eq(userPromptDismissalsTable.userId, userId),
+        gte(userPromptDismissalsTable.dismissedAt, thirtyDaysAgo)
+      ));
+    const dismissedKeys = new Set(dismissals.map(d => d.promptKey));
+
+    // Find "missed deductions" — categories with no expenses logged this month
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+
+    const expensesThisMonth = await db
+      .select({ category: expensesTable.category })
+      .from(expensesTable)
+      .where(and(
+        eq(expensesTable.userId, userId),
+        gte(expensesTable.createdAt, monthStart),
+        lte(expensesTable.createdAt, monthEnd)
+      ));
+    const categoriesWithExpenses = new Set(expensesThisMonth.map(e => e.category));
+
+    const prompts = categories.map(cat => ({
+      key: cat.key,
+      label: cat.label,
+      rule: cat.rule,
+      examples: cat.examples,
+      dismissed: dismissedKeys.has(cat.key),
+      isMissed: false,
+    }));
+
+    // Top 5 missed deductions = trade-relevant categories with no expenses this month, not dismissed
+    const missedDeductions = categories
+      .filter(cat => !categoriesWithExpenses.has(cat.key) && !dismissedKeys.has(`missed_${cat.key}`))
+      .slice(0, 5)
+      .map(cat => ({
+        key: `missed_${cat.key}`,
+        label: cat.label,
+        rule: cat.rule,
+        examples: cat.examples,
+        dismissed: false,
+        isMissed: true,
+      }));
+
+    res.json({
+      tradeType: tradeType ?? null,
+      prompts,
+      missedDeductions,
+    });
+  } catch (err) {
+    req.log.error({ err }, "Failed to get tax prompts");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// POST /tax/prompts/:promptKey/dismiss
+// ---------------------------------------------------------------------------
+router.post("/tax/prompts/:promptKey/dismiss", requireAuth, async (req: Request, res: Response) => {
+  try {
+    const tradieUser = await getOrCreateTradieUser(getReplitUserId(req));
+    const userId = tradieUser.id;
+    const { promptKey } = req.params;
+
+    if (!promptKey) {
+      res.status(400).json({ error: "promptKey is required" });
+      return;
+    }
+
+    await db.insert(userPromptDismissalsTable).values({ userId, promptKey });
+
+    res.json({ success: true, message: `Prompt "${promptKey}" dismissed for 30 days.` });
+  } catch (err) {
+    req.log.error({ err }, "Failed to dismiss prompt");
     res.status(500).json({ error: "Internal server error" });
   }
 });

@@ -50,7 +50,9 @@ import type {
   SetupLogbookBody,
   Subcontractor,
   SuccessResponse,
+  TaxBenchmarksResponse,
   TaxPositionResponse,
+  TaxPromptsResponse,
   TparSummary,
   TradieUser,
   TradieUserResponse,
@@ -3792,6 +3794,240 @@ export function useGetTaxPosition<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary Compare user's expense ratios against ATO industry benchmarks
+ */
+export const getGetTaxBenchmarksUrl = () => {
+  return `/api/tax/benchmarks`;
+};
+
+export const getTaxBenchmarks = async (
+  options?: RequestInit,
+): Promise<TaxBenchmarksResponse> => {
+  return customFetch<TaxBenchmarksResponse>(getGetTaxBenchmarksUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetTaxBenchmarksQueryKey = () => {
+  return [`/api/tax/benchmarks`] as const;
+};
+
+export const getGetTaxBenchmarksQueryOptions = <
+  TData = Awaited<ReturnType<typeof getTaxBenchmarks>>,
+  TError = ErrorType<void>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getTaxBenchmarks>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetTaxBenchmarksQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getTaxBenchmarks>>
+  > = ({ signal }) => getTaxBenchmarks({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getTaxBenchmarks>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetTaxBenchmarksQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getTaxBenchmarks>>
+>;
+export type GetTaxBenchmarksQueryError = ErrorType<void>;
+
+/**
+ * @summary Compare user's expense ratios against ATO industry benchmarks
+ */
+
+export function useGetTaxBenchmarks<
+  TData = Awaited<ReturnType<typeof getTaxBenchmarks>>,
+  TError = ErrorType<void>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getTaxBenchmarks>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetTaxBenchmarksQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Get contextual deductible prompts for the user's trade type
+ */
+export const getGetTaxPromptsUrl = () => {
+  return `/api/tax/prompts`;
+};
+
+export const getTaxPrompts = async (
+  options?: RequestInit,
+): Promise<TaxPromptsResponse> => {
+  return customFetch<TaxPromptsResponse>(getGetTaxPromptsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetTaxPromptsQueryKey = () => {
+  return [`/api/tax/prompts`] as const;
+};
+
+export const getGetTaxPromptsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getTaxPrompts>>,
+  TError = ErrorType<void>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getTaxPrompts>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetTaxPromptsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getTaxPrompts>>> = ({
+    signal,
+  }) => getTaxPrompts({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getTaxPrompts>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetTaxPromptsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getTaxPrompts>>
+>;
+export type GetTaxPromptsQueryError = ErrorType<void>;
+
+/**
+ * @summary Get contextual deductible prompts for the user's trade type
+ */
+
+export function useGetTaxPrompts<
+  TData = Awaited<ReturnType<typeof getTaxPrompts>>,
+  TError = ErrorType<void>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getTaxPrompts>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetTaxPromptsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Dismiss a deductible prompt for 30 days
+ */
+export const getDismissPromptUrl = (promptKey: string) => {
+  return `/api/tax/prompts/${promptKey}/dismiss`;
+};
+
+export const dismissPrompt = async (
+  promptKey: string,
+  options?: RequestInit,
+): Promise<SuccessResponse> => {
+  return customFetch<SuccessResponse>(getDismissPromptUrl(promptKey), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getDismissPromptMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof dismissPrompt>>,
+    TError,
+    { promptKey: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof dismissPrompt>>,
+  TError,
+  { promptKey: string },
+  TContext
+> => {
+  const mutationKey = ["dismissPrompt"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof dismissPrompt>>,
+    { promptKey: string }
+  > = (props) => {
+    const { promptKey } = props ?? {};
+
+    return dismissPrompt(promptKey, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DismissPromptMutationResult = NonNullable<
+  Awaited<ReturnType<typeof dismissPrompt>>
+>;
+
+export type DismissPromptMutationError = ErrorType<void>;
+
+/**
+ * @summary Dismiss a deductible prompt for 30 days
+ */
+export const useDismissPrompt = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof dismissPrompt>>,
+    TError,
+    { promptKey: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof dismissPrompt>>,
+  TError,
+  { promptKey: string },
+  TContext
+> => {
+  return useMutation(getDismissPromptMutationOptions(options));
+};
 
 /**
  * @summary List notifications

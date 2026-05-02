@@ -936,6 +936,57 @@ paths:
         "401":
           description: Unauthorized
 
+  /tax/benchmarks:
+    get:
+      operationId: getTaxBenchmarks
+      tags: [tax]
+      summary: Compare user's expense ratios against ATO industry benchmarks
+      responses:
+        "200":
+          description: Benchmark comparison
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaxBenchmarksResponse"
+        "401":
+          description: Unauthorized
+
+  /tax/prompts:
+    get:
+      operationId: getTaxPrompts
+      tags: [tax]
+      summary: Get contextual deductible prompts for the user's trade type
+      responses:
+        "200":
+          description: Deductible prompts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaxPromptsResponse"
+        "401":
+          description: Unauthorized
+
+  /tax/prompts/{promptKey}/dismiss:
+    post:
+      operationId: dismissPrompt
+      tags: [tax]
+      summary: Dismiss a deductible prompt for 30 days
+      parameters:
+        - in: path
+          name: promptKey
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Prompt dismissed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "401":
+          description: Unauthorized
+
   /notifications:
     get:
       operationId: getNotifications
@@ -2223,6 +2274,112 @@ components:
           nullable: true
       required:
         - fileUrl
+
+    TaxBenchmarkRatio:
+      type: object
+      properties:
+        key:
+          type: string
+        label:
+          type: string
+        userValue:
+          type: number
+          nullable: true
+        benchmarkLow:
+          type: number
+          nullable: true
+        benchmarkHigh:
+          type: number
+          nullable: true
+        status:
+          type: string
+        interpretation:
+          type: string
+        auditTrigger:
+          type: boolean
+      required:
+        - key
+        - label
+        - status
+        - interpretation
+        - auditTrigger
+
+    TaxBenchmarksResponse:
+      type: object
+      properties:
+        financialYear:
+          type: string
+        empty:
+          type: boolean
+        message:
+          type: string
+          nullable: true
+        industry:
+          type: string
+          nullable: true
+        industryLabel:
+          type: string
+          nullable: true
+        bandLabel:
+          type: string
+          nullable: true
+        ytdRevenueExGst:
+          type: number
+        ratios:
+          type: array
+          items:
+            $ref: "#/components/schemas/TaxBenchmarkRatio"
+        hasAuditTriggers:
+          type: boolean
+      required:
+        - financialYear
+        - empty
+        - ytdRevenueExGst
+        - ratios
+        - hasAuditTriggers
+
+    DeductiblePromptItem:
+      type: object
+      properties:
+        key:
+          type: string
+        label:
+          type: string
+        rule:
+          type: string
+        examples:
+          type: array
+          items:
+            type: string
+        dismissed:
+          type: boolean
+        isMissed:
+          type: boolean
+      required:
+        - key
+        - label
+        - rule
+        - examples
+        - dismissed
+        - isMissed
+
+    TaxPromptsResponse:
+      type: object
+      properties:
+        tradeType:
+          type: string
+          nullable: true
+        prompts:
+          type: array
+          items:
+            $ref: "#/components/schemas/DeductiblePromptItem"
+        missedDeductions:
+          type: array
+          items:
+            $ref: "#/components/schemas/DeductiblePromptItem"
+      required:
+        - prompts
+        - missedDeductions
 
     SuccessResponse:
       type: object
