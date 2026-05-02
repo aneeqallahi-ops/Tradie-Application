@@ -67,7 +67,7 @@ export default function Onboarding() {
       }
     }, {
       onSuccess: () => {
-        window.location.href = "/";
+        window.location.href = import.meta.env.BASE_URL;
       },
       onError: () => {
         toast({ title: "Failed to save details", variant: "destructive" });

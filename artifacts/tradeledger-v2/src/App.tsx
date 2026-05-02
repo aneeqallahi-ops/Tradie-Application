@@ -71,8 +71,9 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
     );
   }
 
-  if (me?.needsOnboarding && window.location.pathname !== import.meta.env.BASE_URL + "onboarding") {
-    window.location.href = import.meta.env.BASE_URL.replace(/\/$/, "") + "/onboarding";
+  const onboardingPath = import.meta.env.BASE_URL.replace(/\/$/, "") + "/onboarding";
+  if (me?.needsOnboarding && window.location.pathname !== onboardingPath) {
+    window.location.href = onboardingPath;
     return null;
   }
 
