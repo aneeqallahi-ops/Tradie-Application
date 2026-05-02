@@ -53,9 +53,9 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
           className="relative z-10 w-full max-w-sm"
         >
           <div className="w-24 h-24 bg-gradient-to-br from-primary to-primary/50 text-background rounded-[2rem] flex items-center justify-center text-4xl font-bold mb-8 shadow-[0_0_40px_rgba(26,219,165,0.3)] mx-auto ring-1 ring-white/10">
-            TL
+            T
           </div>
-          <h1 className="text-5xl font-black text-white mb-4 tracking-tighter">TradeLedger</h1>
+          <h1 className="text-5xl font-black text-white mb-4 tracking-tighter">Tradie</h1>
           <p className="text-muted-foreground mb-12 text-lg leading-relaxed">
             The financial cockpit for Australian tradies. See exactly where you stand.
           </p>

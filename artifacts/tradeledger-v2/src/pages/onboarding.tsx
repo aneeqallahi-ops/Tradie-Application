@@ -92,7 +92,7 @@ export default function Onboarding() {
           <div className="w-8 h-8 rounded-xl bg-primary/20 flex items-center justify-center">
             <Wrench className="w-4 h-4 text-primary" />
           </div>
-          <h1 className="text-xl font-bold tracking-tight">TradeLedger</h1>
+          <h1 className="text-xl font-bold tracking-tight">Tradie</h1>
         </div>
         <div className="text-xs font-semibold text-muted-foreground bg-white/5 px-3 py-1 rounded-full border border-white/10">
           Step {step} of 3
@@ -281,7 +281,7 @@ export default function Onboarding() {
             >
               <div>
                 <h2 className="text-3xl font-bold tracking-tight mb-2">Profit First</h2>
-                <p className="text-muted-foreground text-sm">TradeLedger sets money aside automatically.</p>
+                <p className="text-muted-foreground text-sm">Tradie sets money aside automatically.</p>
               </div>
               
               <div className="space-y-8">

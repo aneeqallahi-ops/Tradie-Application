@@ -78,7 +78,7 @@ export default function Settings() {
       const blob = await res.blob();
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = type === "CSV" ? "tradeledger-export.csv" : "logbook.pdf";
+      a.download = type === "CSV" ? "tradie-export.csv" : "logbook.pdf";
       a.click();
       URL.revokeObjectURL(a.href);
     } catch {
@@ -114,7 +114,7 @@ export default function Settings() {
     });
   };
 
-  const initials = me?.user?.businessName?.substring(0, 2).toUpperCase() || "TL";
+  const initials = me?.user?.businessName?.substring(0, 2).toUpperCase() || "TR";
   const currentTradeCard = TRADE_CARDS.find(c => c.value === (me?.user?.tradeType ?? "other")) ?? TRADE_CARDS[TRADE_CARDS.length - 1];
 
   return (
@@ -267,7 +267,7 @@ export default function Settings() {
         </motion.button>
 
         <div className="text-center mt-12 pb-8">
-          <div className="text-white/40 font-bold tracking-tight mb-1">TradeLedger</div>
+          <div className="text-white/40 font-bold tracking-tight mb-1">Tradie</div>
           <div className="text-[10px] font-medium text-white/20 uppercase tracking-widest">Version 2.0.0</div>
         </div>
       </div>
