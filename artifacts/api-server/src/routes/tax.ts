@@ -64,7 +64,7 @@ router.get("/tax/position", requireAuth, async (req: Request, res: Response) => 
     const profitFirstPercent = parseFloat(String(tradieUser.profitFirstTaxPercent ?? "15"));
     const currentSavings = (ytdRevenueExGst * profitFirstPercent) / 100;
 
-    if (fyDaysElapsed < 30 && ytdRevenueExGst === 0) {
+    if (ytdRevenueExGst === 0 || fyDaysElapsed < 30) {
       res.json({
         financialYear: getFinancialYear(),
         empty: true,
@@ -96,22 +96,20 @@ router.get("/tax/position", requireAuth, async (req: Request, res: Response) => 
     };
     const result = calculateTaxPosition(inputs);
 
-    try {
-      await db.insert(taxAuditLogTable).values({
-        userId,
-        calculationType: "tax_position",
-        inputValues: JSON.stringify(inputs),
-        ruleApplied: `FY${getFinancialYear()} brackets + Medicare + LITO`,
-        result: JSON.stringify({
-          taxOwedToday: result.taxOwedToday,
-          projectedTotalTaxEoy: result.projectedTotalTaxEoy,
-          weeklySetAside: result.weeklySetAside,
-          trafficLight: result.trafficLight,
-        }),
-      });
-    } catch (auditErr) {
-      req.log.error({ err: auditErr }, "Failed to write tax audit log (non-fatal)");
-    }
+    // ATO compliance: every tax position served to a user MUST be logged.
+    // If we can't log, we don't serve.
+    await db.insert(taxAuditLogTable).values({
+      userId,
+      calculationType: "tax_position",
+      inputValues: JSON.stringify(inputs),
+      ruleApplied: `FY${getFinancialYear()} brackets + Medicare + LITO`,
+      result: JSON.stringify({
+        taxOwedToday: result.taxOwedToday,
+        projectedTotalTaxEoy: result.projectedTotalTaxEoy,
+        weeklySetAside: result.weeklySetAside,
+        trafficLight: result.trafficLight,
+      }),
+    });
 
     res.json({
       financialYear: getFinancialYear(),

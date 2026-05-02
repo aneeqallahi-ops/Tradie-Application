@@ -288,11 +288,11 @@ export function calculateTaxPosition(inputs: TaxPositionInputs): TaxPositionResu
   let trafficLight: "green" | "amber" | "red" | "grey" = "grey";
   let trafficLightReason = "Need at least 30 days of activity to assess.";
   if (fyDaysElapsed >= 30 && projectedAnnualIncome > 0) {
-    const shortfall = projectedTotalTaxEoy - currentSavings;
+    const shortfall = Math.max(0, projectedTotalTaxEoy - currentSavings);
     const shortfallRatio = projectedTotalTaxEoy > 0 ? shortfall / projectedTotalTaxEoy : 0;
-    if (currentSavings >= projectedTotalTaxEoy) {
+    if (shortfallRatio < 0.10) {
       trafficLight = "green";
-      trafficLightReason = "Tax savings on track for projected EOFY liability.";
+      trafficLightReason = "Tax savings on track for projected EOFY liability (within 10%).";
     } else if (shortfallRatio <= 0.20) {
       trafficLight = "amber";
       trafficLightReason = "Tax savings are 10–20% under projected EOFY liability.";
