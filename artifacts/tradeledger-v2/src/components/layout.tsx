@@ -12,6 +12,7 @@ export function BottomNav() {
 
   const navItems = [
     { icon: Home, label: "Home", href: "/" },
+    { icon: FileText, label: "Quotes", href: "/quotes" },
     { icon: Briefcase, label: "Jobs", href: "/jobs" },
     { icon: Receipt, label: "Expenses", href: "/expenses" },
     { icon: Calculator, label: "Tax", href: "/tax" },

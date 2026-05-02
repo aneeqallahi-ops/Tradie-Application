@@ -279,6 +279,40 @@ router.get("/tax/benchmarks", requireAuth, async (req: Request, res: Response) =
       return;
     }
 
+    // No turnover band set — show nudge to complete profile
+    if (!turnoverBand) {
+      res.json({
+        financialYear: getFinancialYear(),
+        empty: true,
+        message: "Set your annual turnover band in Settings to see your benchmarks.",
+        industry: benchmarkInfo.industry,
+        industryLabel: benchmarkInfo.label,
+        bandLabel: null,
+        ytdRevenueExGst,
+        ratios: [],
+        hasAuditTriggers: false,
+      });
+      return;
+    }
+
+    // Use the band resolved from annualTurnoverBand (with fallback normalization via userTurnoverBandToRevenue)
+    const band = benchmarkInfo.band;
+
+    if (!band) {
+      res.json({
+        financialYear: getFinancialYear(),
+        empty: true,
+        message: "No benchmark data available for your current turnover band. Try updating your annual turnover in Settings.",
+        industry: benchmarkInfo.industry,
+        industryLabel: benchmarkInfo.label,
+        bandLabel: null,
+        ytdRevenueExGst,
+        ratios: [],
+        hasAuditTriggers: false,
+      });
+      return;
+    }
+
     // Get expense totals grouped by category
     const expensesByCategory = await db
       .select({
@@ -300,30 +334,21 @@ router.get("/tax/benchmarks", requireAuth, async (req: Request, res: Response) =
       costOfSales: 0,
       labour: 0,
       motorVehicle: 0,
-      rent: 0,
     };
 
     for (const row of expensesByCategory) {
       const exGst = Math.max(0, parseFloat(row.total ?? "0") - parseFloat(row.gstClaimable ?? "0"));
       ratioBuckets.totalExpenses += exGst;
       const mapped = CATEGORY_TO_RATIO[row.category ?? ""];
-      if (mapped) ratioBuckets[mapped] += exGst;
+      if (mapped && mapped in ratioBuckets) ratioBuckets[mapped] += exGst;
     }
 
-    // Pick the benchmark band by actual YTD revenue (most accurate at time of request)
-    const industryData = benchmarkInfo.bands.length > 0
-      ? { label: benchmarkInfo.label ?? "", bands: benchmarkInfo.bands }
-      : null;
-    const band = industryData
-      ? pickBenchmarkBandForRevenue(industryData as Parameters<typeof pickBenchmarkBandForRevenue>[0], ytdRevenueExGst)
-      : benchmarkInfo.band;
-
+    // Only show the four ATO benchmark ratios required by the task spec
     const ratioDefinitions: Array<{ key: keyof BenchmarkBand; label: string }> = [
       { key: "totalExpenses", label: "Total Expenses" },
       { key: "costOfSales", label: "Cost of Sales" },
       { key: "labour", label: "Labour" },
       { key: "motorVehicle", label: "Motor Vehicle" },
-      { key: "rent", label: "Rent" },
     ];
 
     const ratios = ratioDefinitions
