@@ -22,6 +22,10 @@ export interface UserContext {
   hasLogbook: boolean;
   gstRegistered: boolean;
   toolsExpensesYtd: number;
+  /** Subscriptions, insurance, licences, phone_internet YTD ex-GST */
+  prepayableExpensesYtd: number;
+  /** Home office category expenses YTD ex-GST */
+  homeOfficeExpensesYtd: number;
   benchmarkVariance: Record<string, {
     status: string;
     userValue: number | null;
@@ -77,6 +81,12 @@ function fyEndLabel(): string {
   return `30 June ${year}`;
 }
 
+/** Project YTD amount to full-year based on days elapsed */
+function projectAnnual(ytd: number, fyDaysElapsed: number, fyDaysTotal: number): number {
+  if (fyDaysElapsed <= 0) return ytd;
+  return ytd * (fyDaysTotal / fyDaysElapsed);
+}
+
 const STRATEGIES: StrategyDefinition[] = [
   // ---------------------------------------------------------------------------
   // 1. Instant Asset Write-Off
@@ -89,18 +99,30 @@ const STRATEGIES: StrategyDefinition[] = [
     atoReferenceUrl: "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/depreciation-of-assets/simpler-depreciation-for-small-business/instant-asset-write-off",
     talkToCpa: false,
     isRisk: false,
-    isApplicable: (ctx) => ctx.ytdRevenueExGst > 0 && ctx.daysToEofy > 0,
+    isApplicable: (ctx) => {
+      if (!ctx.ytdRevenueExGst || ctx.daysToEofy <= 0) return false;
+      const threshold = getInstantAssetWriteOff();
+      const remaining = threshold - ctx.toolsExpensesYtd;
+      return remaining > 0;
+    },
     calculateSaving: (ctx) => {
       const threshold = getInstantAssetWriteOff();
       const remaining = Math.max(0, threshold - ctx.toolsExpensesYtd);
-      const eligiblePurchase = Math.min(remaining, 5000);
+      // Suggest purchasing up to min(remaining, 25% of projected taxable income / marginalRate) — dynamic on their actual income
+      const incomeBased = ctx.projectedTaxableIncome > 0
+        ? Math.round(ctx.projectedTaxableIncome * 0.05)
+        : 3000;
+      const eligiblePurchase = Math.min(remaining, Math.max(1000, incomeBased));
       return Math.round(eligiblePurchase * ctx.marginalRate);
     },
     description: (ctx) => {
       const threshold = getInstantAssetWriteOff();
       const remaining = Math.max(0, threshold - ctx.toolsExpensesYtd);
-      const eligiblePurchase = Math.min(remaining, 5000);
-      return `Assets costing under $${threshold.toLocaleString()} (ex-GST) can be immediately deducted this financial year. Purchasing up to $${eligiblePurchase.toLocaleString()} in tools, equipment or technology before ${fyEndLabel()} could save you $${Math.round(eligiblePurchase * ctx.marginalRate).toLocaleString()} in tax at your current ${Math.round(ctx.marginalRate * 100)}% marginal rate.`;
+      const incomeBased = ctx.projectedTaxableIncome > 0
+        ? Math.round(ctx.projectedTaxableIncome * 0.05)
+        : 3000;
+      const eligiblePurchase = Math.min(remaining, Math.max(1000, incomeBased));
+      return `Assets costing under $${threshold.toLocaleString()} (ex-GST) can be immediately deducted this financial year. You have $${remaining.toLocaleString()} of write-off capacity remaining. Purchasing ~$${eligiblePurchase.toLocaleString()} in tools, equipment or technology before ${fyEndLabel()} could save you $${Math.round(eligiblePurchase * ctx.marginalRate).toLocaleString()} in tax at your current ${Math.round(ctx.marginalRate * 100)}% marginal rate.`;
     },
     deadline: () => fyEndLabel(),
   },
@@ -116,41 +138,42 @@ const STRATEGIES: StrategyDefinition[] = [
     atoReferenceUrl: "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/deductions-you-can-claim/vehicles-travel-and-transport/car-expenses/logbook-method",
     talkToCpa: false,
     isRisk: false,
-    isApplicable: (ctx) => {
-      if (!ctx.hasLogbook && ctx.ytdBusinessKm > 0) {
-        const { maxKilometres } = getVehicleRate();
-        const projectedKm = ctx.fyDaysElapsed > 0
-          ? ctx.ytdBusinessKm * (ctx.fyDaysTotal / ctx.fyDaysElapsed)
-          : ctx.ytdBusinessKm;
-        return projectedKm > maxKilometres;
-      }
-      return false;
-    },
+    // Applicable for ALL users with recorded km and no logbook — not gated on km cap
+    isApplicable: (ctx) => !ctx.hasLogbook && ctx.ytdBusinessKm > 0,
     calculateSaving: (ctx) => {
       const { centsPerKilometre, maxKilometres } = getVehicleRate();
-      const maxCentsPerKm = maxKilometres * centsPerKilometre;
-      // Logbook method: estimate 70% business use of $14,000 typical annual vehicle running costs
-      const typicalAnnualVehicleCost = 14000;
-      const logbookDeduction = typicalAnnualVehicleCost * 0.70;
-      const additionalDeduction = Math.max(0, logbookDeduction - maxCentsPerKm);
-      return Math.round(additionalDeduction * ctx.marginalRate);
+      const projectedKm = projectAnnual(ctx.ytdBusinessKm, ctx.fyDaysElapsed, ctx.fyDaysTotal);
+
+      if (projectedKm > maxKilometres) {
+        // Logbook unlocks more kms: actual costs vs capped cents-per-km
+        const cappedDeduction = maxKilometres * centsPerKilometre;
+        // Estimate actual cost/km for tradies = $1.40/km (ABS-based average for utes/vans)
+        const actualCostPerKm = 1.40;
+        const logbookDeduction = Math.min(projectedKm, projectedKm) * actualCostPerKm * 0.85;
+        return Math.round(Math.max(0, logbookDeduction - cappedDeduction) * ctx.marginalRate);
+      } else {
+        // Logbook can still beat cents-per-km if actual cost/km exceeds ATO rate
+        // Typical tradie vehicle cost: $1.40/km actual vs $0.88/km ATO rate
+        const actualCostPerKm = 1.40;
+        const additionalPerKm = Math.max(0, actualCostPerKm - centsPerKilometre);
+        return Math.round(projectedKm * additionalPerKm * ctx.marginalRate);
+      }
     },
     description: (ctx) => {
       const { centsPerKilometre, maxKilometres } = getVehicleRate();
-      const maxDeduction = maxKilometres * centsPerKilometre;
-      const projectedKm = ctx.fyDaysElapsed > 0
-        ? Math.round(ctx.ytdBusinessKm * (ctx.fyDaysTotal / ctx.fyDaysElapsed))
-        : ctx.ytdBusinessKm;
-      return `You're on track for ~${projectedKm.toLocaleString()} business km this year, exceeding the ${maxKilometres.toLocaleString()}-km cap for cents-per-km ($${maxDeduction.toLocaleString()} max deduction). A logbook kept for 12 weeks lets you claim actual vehicle costs based on your business-use percentage — typically worth significantly more. A logbook is valid for 5 years.`;
+      const projectedKm = Math.round(projectAnnual(ctx.ytdBusinessKm, ctx.fyDaysElapsed, ctx.fyDaysTotal));
+      const cappedDeduction = Math.round(Math.min(projectedKm, maxKilometres) * centsPerKilometre);
+      const actualCostPerKm = 1.40;
+      const logbookDeduction = Math.round(projectedKm * actualCostPerKm * 0.85);
+      return `You're tracking ~${projectedKm.toLocaleString()} business km this year. Without a logbook your deduction is capped at ${Math.min(projectedKm, maxKilometres).toLocaleString()} km × ${centsPerKilometre}c = $${cappedDeduction.toLocaleString()}. A 12-week logbook lets you claim actual vehicle running costs (typically $${actualCostPerKm.toFixed(2)}/km × 85% business use ≈ $${logbookDeduction.toLocaleString()}) — potentially much more. Once recorded, the logbook is valid for 5 years.`;
     },
     deadline: (ctx) => {
-      // Need to start logbook at least 12 weeks before EOFY
-      const deadline = new Date();
+      const now = new Date();
       const fyEndMonth = 5; // June (0-indexed)
-      const fyYear = deadline.getMonth() >= 6 ? deadline.getFullYear() + 1 : deadline.getFullYear();
+      const fyYear = now.getMonth() >= 6 ? now.getFullYear() + 1 : now.getFullYear();
       const fyEnd = new Date(fyYear, fyEndMonth, 30);
       const logbookStart = new Date(fyEnd.getTime() - 84 * 24 * 60 * 60 * 1000); // 84 days = 12 weeks
-      if (logbookStart > deadline) {
+      if (logbookStart > now) {
         return `Start by ${logbookStart.toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })}`;
       }
       return ctx.daysToEofy > 0 ? `Too late for this FY — start now for next FY` : null;
@@ -170,15 +193,23 @@ const STRATEGIES: StrategyDefinition[] = [
     isRisk: false,
     isApplicable: (ctx) => ctx.ytdRevenueExGst > 0 && ctx.marginalRate >= 0.16,
     calculateSaving: (ctx) => {
-      const suggestedContribution = Math.min(5000, Math.max(0, ctx.projectedTaxableIncome - 18200) * 0.10);
-      // Tax saving = contribution × (marginalRate - 0.15) because super is taxed at 15% in the fund
-      const taxRate = ctx.marginalRate;
-      return Math.round(suggestedContribution * Math.max(0, taxRate - 0.15));
+      // Suggest contributing 10% of projected taxable income, capped at concessional cap remainder
+      const concessionalCap = 30000;
+      const suggestedContribution = Math.min(
+        concessionalCap,
+        Math.max(0, ctx.projectedTaxableIncome * 0.10)
+      );
+      // Tax saving = contribution × (marginalRate − 15% super tax)
+      return Math.round(suggestedContribution * Math.max(0, ctx.marginalRate - 0.15));
     },
     description: (ctx) => {
-      const suggestedContribution = Math.min(5000, Math.max(0, ctx.projectedTaxableIncome - 18200) * 0.10);
+      const concessionalCap = 30000;
+      const suggestedContribution = Math.min(
+        concessionalCap,
+        Math.max(0, Math.round(ctx.projectedTaxableIncome * 0.10))
+      );
       const saving = Math.round(suggestedContribution * Math.max(0, ctx.marginalRate - 0.15));
-      return `As a sole trader you can claim a tax deduction for personal super contributions up to the $30,000 concessional cap. Contributing ~$${suggestedContribution.toLocaleString()} before ${fyEndLabel()} could save $${saving.toLocaleString()} in tax (contributions taxed at 15% in the fund vs your ${Math.round(ctx.marginalRate * 100)}% marginal rate). You must lodge a "Notice of intent to claim" with your super fund before lodging your tax return.`;
+      return `As a sole trader you can claim a tax deduction for personal super contributions up to the $${concessionalCap.toLocaleString()} concessional cap. Based on your projected taxable income of $${Math.round(ctx.projectedTaxableIncome).toLocaleString()}, contributing ~$${suggestedContribution.toLocaleString()} before ${fyEndLabel()} could save $${saving.toLocaleString()} in tax (contributions taxed at 15% in the fund vs your ${Math.round(ctx.marginalRate * 100)}% marginal rate). You must lodge a "Notice of intent to claim a deduction" with your super fund before lodging your tax return.`;
     },
     deadline: () => fyEndLabel(),
   },
@@ -196,12 +227,35 @@ const STRATEGIES: StrategyDefinition[] = [
     isRisk: false,
     isApplicable: (ctx) => ctx.daysToEofy > 0 && ctx.daysToEofy <= 90 && ctx.ytdRevenueExGst > 0,
     calculateSaving: (ctx) => {
-      const prepayableAmount = 1500; // typical tradie subscriptions + insurance renewal
+      // Derive from their actual prepayable expense run-rate projected over the remaining FY period
+      const projectedAnnualPrepayable = projectAnnual(
+        ctx.prepayableExpensesYtd,
+        ctx.fyDaysElapsed,
+        ctx.fyDaysTotal
+      );
+      // Prepayable amount = spending they haven't yet incurred this FY (future months)
+      const remainingProjected = Math.max(
+        0,
+        projectedAnnualPrepayable - ctx.prepayableExpensesYtd
+      );
+      // If no data, use 1% of projected annual income as a conservative floor
+      const prepayableAmount = remainingProjected > 0
+        ? remainingProjected
+        : Math.max(500, ctx.projectedAnnualIncome * 0.01);
       return Math.round(prepayableAmount * ctx.marginalRate);
     },
     description: (ctx) => {
-      const prepayableAmount = 1500;
-      return `You have ${ctx.daysToEofy} days until EOFY (${fyEndLabel()}). Prepaying up to 12 months of subscriptions (software, trade memberships), insurance renewals and other eligible expenses before ${fyEndLabel()} can move ~$${prepayableAmount.toLocaleString()} of deductions into this financial year. At your ${Math.round(ctx.marginalRate * 100)}% marginal rate that's $${Math.round(prepayableAmount * ctx.marginalRate).toLocaleString()} less tax this year.`;
+      const projectedAnnualPrepayable = projectAnnual(
+        ctx.prepayableExpensesYtd,
+        ctx.fyDaysElapsed,
+        ctx.fyDaysTotal
+      );
+      const remainingProjected = Math.max(0, projectedAnnualPrepayable - ctx.prepayableExpensesYtd);
+      const prepayableAmount = remainingProjected > 0
+        ? Math.round(remainingProjected)
+        : Math.max(500, Math.round(ctx.projectedAnnualIncome * 0.01));
+      const saving = Math.round(prepayableAmount * ctx.marginalRate);
+      return `You have ${ctx.daysToEofy} days until EOFY (${fyEndLabel()}). Based on your spending patterns, you have ~$${prepayableAmount.toLocaleString()} in subscriptions, software, insurance and trade memberships that could be prepaid before ${fyEndLabel()} and claimed this financial year. At your ${Math.round(ctx.marginalRate * 100)}% marginal rate that's $${saving.toLocaleString()} less tax this year.`;
     },
     deadline: () => fyEndLabel(),
   },
@@ -219,18 +273,40 @@ const STRATEGIES: StrategyDefinition[] = [
     isRisk: false,
     isApplicable: (ctx) => ctx.ytdRevenueExGst > 0,
     calculateSaving: (ctx) => {
-      // 2 hours/day * working days remaining (5/7 of fyDaysTotal) * $0.70/hr
-      const workingDays = ctx.fyDaysTotal * (5 / 7);
-      const totalHours = 2 * workingDays;
-      const fixedRate = 0.70;
-      const deduction = totalHours * fixedRate;
-      return Math.round(deduction * ctx.marginalRate);
+      const fixedRate = 0.70; // ATO fixed rate $/hr
+      // If the user has recorded home_office expenses, use those to infer hours
+      if (ctx.homeOfficeExpensesYtd > 0) {
+        const inferredHoursYtd = ctx.homeOfficeExpensesYtd / fixedRate;
+        const projectedAnnualHours = projectAnnual(inferredHoursYtd, ctx.fyDaysElapsed, ctx.fyDaysTotal);
+        return Math.round(projectedAnnualHours * fixedRate * ctx.marginalRate);
+      }
+      // Derive from revenue: higher-revenue tradies do more admin.
+      // Use 1–3 hrs/day scaled by projected annual income tiers; min 1 hr/day.
+      const annualIncome = ctx.projectedAnnualIncome;
+      const hoursPerDay = annualIncome >= 150000 ? 2.5 : annualIncome >= 75000 ? 2.0 : 1.5;
+      const workingDays = Math.round(ctx.fyDaysTotal * (5 / 7));
+      const totalHours = hoursPerDay * workingDays;
+      return Math.round(totalHours * fixedRate * ctx.marginalRate);
     },
     description: (ctx) => {
-      const workingDays = Math.round(ctx.fyDaysTotal * (5 / 7));
-      const totalHours = 2 * workingDays;
-      const deduction = Math.round(totalHours * 0.70);
-      return `The ATO's fixed-rate method allows 70 cents per hour for home office use (electricity, internet, phone, stationery). At 2 hours/day for ~${workingDays} working days, that's ~${totalHours} hours and $${deduction} in deductions this FY. Keep a representative diary of hours worked from home — a spreadsheet or calendar record is sufficient. No receipts required for the fixed-rate method.`;
+      const fixedRate = 0.70;
+      let hoursPerDay: number;
+      let deduction: number;
+      let workingDays: number;
+
+      if (ctx.homeOfficeExpensesYtd > 0) {
+        const inferredHoursYtd = ctx.homeOfficeExpensesYtd / fixedRate;
+        const projectedAnnualHours = Math.round(projectAnnual(inferredHoursYtd, ctx.fyDaysElapsed, ctx.fyDaysTotal));
+        deduction = Math.round(projectedAnnualHours * fixedRate);
+        return `Based on your recorded home office activity, you're on track for ~${projectedAnnualHours} home-office hours this FY. At the ATO fixed rate of 70c/hr that's a $${deduction.toLocaleString()} deduction — saving you $${Math.round(deduction * ctx.marginalRate).toLocaleString()} in tax. Keep a representative diary of hours (a calendar record is sufficient).`;
+      }
+
+      const annualIncome = ctx.projectedAnnualIncome;
+      hoursPerDay = annualIncome >= 150000 ? 2.5 : annualIncome >= 75000 ? 2.0 : 1.5;
+      workingDays = Math.round(ctx.fyDaysTotal * (5 / 7));
+      const totalHours = Math.round(hoursPerDay * workingDays);
+      deduction = Math.round(totalHours * fixedRate);
+      return `The ATO's fixed-rate method allows 70 cents per hour for home office use (electricity, internet, phone, stationery). At ~${hoursPerDay} hours/day for ~${workingDays} working days, that's ~${totalHours} hours and a $${deduction.toLocaleString()} deduction this FY — saving $${Math.round(deduction * ctx.marginalRate).toLocaleString()} at your ${Math.round(ctx.marginalRate * 100)}% rate. Keep a representative diary; no receipts needed for the fixed-rate method.`;
     },
     deadline: () => null,
   },
@@ -265,7 +341,14 @@ const STRATEGIES: StrategyDefinition[] = [
       const underClaimedRatios = Object.entries(ctx.benchmarkVariance)
         .filter(([, v]) => v.status === "below" && v.benchmarkLow !== null && v.userValue !== null)
         .map(([k]) => k);
-      return `Your ${underClaimedRatios.join(" and ")} expense ratio${underClaimedRatios.length > 1 ? "s are" : " is"} below the ATO safe range for your industry and turnover. This may mean you're not claiming all eligible deductions. Review your records for unclaimed ${underClaimedRatios.includes("costOfSales") ? "materials and direct costs, " : ""}${underClaimedRatios.includes("labour") ? "subcontractor payments, " : ""}${underClaimedRatios.includes("motorVehicle") ? "vehicle expenses, " : ""}and ensure all business expenses are logged before EOFY.`;
+      const labelMap: Record<string, string> = {
+        costOfSales: "materials and direct costs",
+        labour: "subcontractor payments",
+        motorVehicle: "vehicle expenses",
+        totalExpenses: "total expenses",
+      };
+      const labels = underClaimedRatios.map(k => labelMap[k] ?? k).join(", ");
+      return `Your ${labels} ratio${underClaimedRatios.length > 1 ? "s are" : " is"} below the ATO safe range for your industry and turnover band. This may mean you're not capturing all eligible deductions. Review your records and ensure every business expense is logged — any gap to the ATO benchmark midpoint represents a missed deduction that could reduce your taxable income.`;
     },
     deadline: () => fyEndLabel(),
   },
@@ -286,14 +369,14 @@ const STRATEGIES: StrategyDefinition[] = [
       return !ctx.gstRegistered && ctx.projectedAnnualIncome >= gstThreshold * 0.80;
     },
     calculateSaving: (ctx) => {
-      // Frame as penalty avoidance: ATO penalty for late registration ≈ $313 + back-payment of 10% on overdue amount
+      // Frame as liability exposure: back-GST owed on revenue exceeding threshold
       const gstThreshold = getGSTThreshold();
       const overThreshold = Math.max(0, ctx.projectedAnnualIncome - gstThreshold);
-      return Math.round(overThreshold * 0.10); // back GST liability exposure
+      return Math.round(overThreshold * 0.10);
     },
     description: (ctx) => {
       const gstThreshold = getGSTThreshold();
-      return `Your projected revenue of $${Math.round(ctx.projectedAnnualIncome).toLocaleString()} is approaching the GST registration threshold of $${gstThreshold.toLocaleString()}. You must register within 21 days of crossing the threshold. Failure to register exposes you to a back-GST liability on all unregistered revenue, plus ATO penalties and general interest charges.`;
+      return `Your projected revenue of $${Math.round(ctx.projectedAnnualIncome).toLocaleString()} is approaching the GST registration threshold of $${gstThreshold.toLocaleString()}. You must register within 21 days of crossing the threshold. Failure to register exposes you to back-GST liability on all unregistered revenue, plus ATO failure-to-register penalties and general interest charges.`;
     },
     deadline: () => null,
   },
@@ -311,16 +394,19 @@ const STRATEGIES: StrategyDefinition[] = [
     isRisk: true,
     isApplicable: (ctx) => ctx.trafficLight === "red" && ctx.projectedTotalTaxEoy > 0,
     calculateSaving: (ctx) => {
-      // Saving = avoid SIC (shortfall interest charge, ~7.01% p.a.) on the tax debt
-      const shortfall = Math.max(0, ctx.projectedTotalTaxEoy - ctx.ytdExpenses * 0.15);
-      return Math.round(shortfall * 0.07); // approximate interest avoidance
+      // Saving = ATO shortfall interest charge (SIC) avoided, currently ~7.01% p.a.
+      // Shortfall = full projected tax minus what they should have saved by now
+      const idealSavedByNow = ctx.projectedTotalTaxEoy * (ctx.fyDaysElapsed / ctx.fyDaysTotal);
+      const actualSaved = ctx.ytdExpenses * 0.15; // rough proxy for a savings account at 15%
+      const shortfall = Math.max(0, idealSavedByNow - actualSaved);
+      return Math.round(shortfall * 0.0701); // SIC rate
     },
     description: (ctx) => {
       const weeksLeft = Math.ceil(ctx.daysToEofy / 7);
       const weeklyRequired = weeksLeft > 0
-        ? Math.round((ctx.projectedTotalTaxEoy) / weeksLeft)
+        ? Math.round(ctx.projectedTotalTaxEoy / weeksLeft)
         : ctx.projectedTotalTaxEoy;
-      return `Your tax savings are tracking more than 20% below your projected EOFY liability of $${Math.round(ctx.projectedTotalTaxEoy).toLocaleString()}. To avoid PAYG debt and ATO interest charges, set aside ~$${weeklyRequired.toLocaleString()}/week for the remaining ${weeksLeft} weeks until ${fyEndLabel()}. Consider opening a dedicated tax account. If cash flow is tight, speak with a CPA now — voluntary disclosures and payment plans are available.`;
+      return `Your tax savings are tracking more than 20% below your projected EOFY liability of $${Math.round(ctx.projectedTotalTaxEoy).toLocaleString()}. To avoid PAYG debt and ATO general interest charges (currently ~7% p.a.), set aside ~$${weeklyRequired.toLocaleString()}/week for the remaining ${weeksLeft} weeks until ${fyEndLabel()}. If cash flow is tight, speak with a CPA now — voluntary disclosures and ATO payment plans are available.`;
     },
     deadline: () => fyEndLabel(),
   },
@@ -329,18 +415,21 @@ const STRATEGIES: StrategyDefinition[] = [
 export function getApplicableStrategies(ctx: UserContext): TaxStrategy[] {
   return STRATEGIES
     .filter(s => s.isApplicable(ctx))
-    .map(s => ({
-      id: s.id,
-      title: s.title,
-      description: s.description(ctx),
-      category: s.category,
-      estimatedSaving: s.calculateSaving(ctx),
-      deadline: s.deadline(ctx),
-      atoReference: s.atoReference,
-      atoReferenceUrl: s.atoReferenceUrl,
-      talkToCpa: s.talkToCpa,
-      advisoryUrl: `/advisory/new?strategy=${s.id}`,
-      isRisk: s.isRisk,
-    }))
+    .map(s => {
+      const estimatedSaving = s.calculateSaving(ctx);
+      return {
+        id: s.id,
+        title: s.title,
+        description: s.description(ctx),
+        category: s.category,
+        estimatedSaving,
+        deadline: s.deadline(ctx),
+        atoReference: s.atoReference,
+        atoReferenceUrl: s.atoReferenceUrl,
+        talkToCpa: s.talkToCpa,
+        advisoryUrl: `/advisory/new?strategy=${s.id}&saving=${estimatedSaving}`,
+        isRisk: s.isRisk,
+      };
+    })
     .sort((a, b) => b.estimatedSaving - a.estimatedSaving);
 }

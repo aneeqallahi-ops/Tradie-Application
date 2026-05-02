@@ -554,12 +554,23 @@ router.get("/tax/strategies", requireAuth, async (req: Request, res: Response) =
       ))
       .groupBy(expensesTable.category);
 
+    const PREPAYABLE_CATEGORIES = new Set([
+      "subscriptions", "software", "insurance", "licences",
+      "phone_internet", "training", "memberships",
+    ]);
+    const HOME_OFFICE_CATEGORIES = new Set(["home_office"]);
+
     let ytdExpenses = 0;
     let toolsExpensesYtd = 0;
+    let prepayableExpensesYtd = 0;
+    let homeOfficeExpensesYtd = 0;
     for (const row of expensesByCategory) {
       const exGst = Math.max(0, parseFloat(row.total ?? "0") - parseFloat(row.gstClaimable ?? "0"));
       ytdExpenses += exGst;
-      if (row.category === "tools_equipment") toolsExpensesYtd += exGst;
+      const cat = row.category ?? "";
+      if (cat === "tools_equipment") toolsExpensesYtd += exGst;
+      if (PREPAYABLE_CATEGORIES.has(cat)) prepayableExpensesYtd += exGst;
+      if (HOME_OFFICE_CATEGORIES.has(cat)) homeOfficeExpensesYtd += exGst;
     }
 
     // Vehicle km
@@ -641,6 +652,8 @@ router.get("/tax/strategies", requireAuth, async (req: Request, res: Response) =
       hasLogbook: !!tradieUser.logbookStartDate,
       gstRegistered: tradieUser.gstRegistered ?? true,
       toolsExpensesYtd,
+      prepayableExpensesYtd,
+      homeOfficeExpensesYtd,
       benchmarkVariance,
     };
 
