@@ -73,6 +73,39 @@ router.post("/advisory/requests", requireAuth, async (req: Request, res: Respons
       })
       .catch(err => req.log.warn({ err }, "Failed to create advisory notification"));
 
+    const webhookUrl = process.env.ADVISORY_WEBHOOK_URL;
+    if (webhookUrl) {
+      const payload = {
+        serviceType,
+        income: currentIncome,
+        helpNeeded,
+        urgency,
+        userId: tradieUser.id,
+        createdAt: created.createdAt instanceof Date ? created.createdAt.toISOString() : created.createdAt,
+      };
+      void (async () => {
+        try {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 5000);
+          try {
+            const response = await fetch(webhookUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+              signal: controller.signal,
+            });
+            if (!response.ok) {
+              req.log.warn({ status: response.status }, "Advisory webhook returned non-2xx status");
+            }
+          } finally {
+            clearTimeout(timeout);
+          }
+        } catch (err) {
+          req.log.warn({ err }, "Failed to deliver advisory webhook notification");
+        }
+      })();
+    }
+
     res.status(201).json({ request: created });
   } catch (err) {
     req.log.error({ err }, "Failed to create advisory request");

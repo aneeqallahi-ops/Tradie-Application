@@ -154,3 +154,4 @@ cd lib/api-spec && pnpm run codegen
 - `SESSION_SECRET` — Session signing secret (set in Replit Secrets)
 - `REPLIT_DOMAINS` — Replit domains (auto-set)
 - `REPLIT_DEV_DOMAIN` — Dev domain (auto-set)
+- `ADVISORY_WEBHOOK_URL` — Optional webhook URL the API server POSTs to when a new advisory request is created (Slack/Zapier/Make/etc). Payload: `{ serviceType, income, helpNeeded, urgency, userId, createdAt }`. Fire-and-forget — failures are logged as warnings and never block the 201 response. If unset, no webhook is fired.
