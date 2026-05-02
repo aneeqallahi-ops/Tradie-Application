@@ -46,18 +46,20 @@ export function IntakeForm({ open, onClose, serviceType, prefillIncome, prefillI
   const [helpNeeded, setHelpNeeded] = useState(prefillHelp ?? "");
   const [urgency, setUrgency] = useState<"this_week" | "this_month" | "no_rush">("no_rush");
   const [submitted, setSubmitted] = useState(false);
+  const [incomeTouched, setIncomeTouched] = useState(false);
+  const [helpTouched, setHelpTouched] = useState(false);
 
   useEffect(() => {
-    if (!submitted) {
+    if (!submitted && !incomeTouched) {
       setIncome(prefillIncome != null ? String(Math.round(prefillIncome)) : "");
     }
-  }, [prefillIncome, submitted]);
+  }, [prefillIncome, submitted, incomeTouched]);
 
   useEffect(() => {
-    if (!submitted) {
+    if (!submitted && !helpTouched) {
       setHelpNeeded(prefillHelp ?? "");
     }
-  }, [prefillHelp, submitted]);
+  }, [prefillHelp, submitted, helpTouched]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,6 +88,8 @@ export function IntakeForm({ open, onClose, serviceType, prefillIncome, prefillI
     setIncome(prefillIncome != null ? String(Math.round(prefillIncome)) : "");
     setHelpNeeded(prefillHelp ?? "");
     setUrgency("no_rush");
+    setIncomeTouched(false);
+    setHelpTouched(false);
     onClose();
   };
 
@@ -140,7 +144,7 @@ export function IntakeForm({ open, onClose, serviceType, prefillIncome, prefillI
                   step={1000}
                   placeholder="e.g. 120000"
                   value={income}
-                  onChange={e => setIncome(e.target.value)}
+                  onChange={e => { setIncome(e.target.value); setIncomeTouched(true); }}
                   className="w-full bg-secondary/60 rounded-xl pl-8 pr-4 py-3 text-sm text-primary font-medium focus:outline-none focus:ring-2 focus:ring-accent/30"
                   data-testid="advisory-income-input"
                 />
@@ -161,7 +165,7 @@ export function IntakeForm({ open, onClose, serviceType, prefillIncome, prefillI
                 rows={4}
                 placeholder="Describe what you're looking for help with..."
                 value={helpNeeded}
-                onChange={e => setHelpNeeded(e.target.value)}
+                onChange={e => { setHelpNeeded(e.target.value); setHelpTouched(true); }}
                 className="w-full bg-secondary/60 rounded-xl px-4 py-3 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent/30 resize-none"
               />
             </div>
