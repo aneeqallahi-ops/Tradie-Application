@@ -53,6 +53,7 @@ import type {
   TaxBenchmarksResponse,
   TaxPositionResponse,
   TaxPromptsResponse,
+  TaxStrategiesResponse,
   TparSummary,
   TradieUser,
   TradieUserResponse,
@@ -4028,6 +4029,81 @@ export const useDismissPrompt = <
 > => {
   return useMutation(getDismissPromptMutationOptions(options));
 };
+
+/**
+ * @summary Get personalised tax-minimisation strategies for the current user
+ */
+export const getGetTaxStrategiesUrl = () => {
+  return `/api/tax/strategies`;
+};
+
+export const getTaxStrategies = async (
+  options?: RequestInit,
+): Promise<TaxStrategiesResponse> => {
+  return customFetch<TaxStrategiesResponse>(getGetTaxStrategiesUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetTaxStrategiesQueryKey = () => {
+  return [`/api/tax/strategies`] as const;
+};
+
+export const getGetTaxStrategiesQueryOptions = <
+  TData = Awaited<ReturnType<typeof getTaxStrategies>>,
+  TError = ErrorType<void>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getTaxStrategies>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetTaxStrategiesQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getTaxStrategies>>
+  > = ({ signal }) => getTaxStrategies({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getTaxStrategies>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetTaxStrategiesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getTaxStrategies>>
+>;
+export type GetTaxStrategiesQueryError = ErrorType<void>;
+
+/**
+ * @summary Get personalised tax-minimisation strategies for the current user
+ */
+
+export function useGetTaxStrategies<
+  TData = Awaited<ReturnType<typeof getTaxStrategies>>,
+  TError = ErrorType<void>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getTaxStrategies>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetTaxStrategiesQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary List notifications

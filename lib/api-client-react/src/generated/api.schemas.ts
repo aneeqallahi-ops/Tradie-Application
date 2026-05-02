@@ -490,6 +490,28 @@ export interface TaxPromptsResponse {
   missedDeductions: DeductiblePromptItem[];
 }
 
+export interface TaxStrategy {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  estimatedSaving: number;
+  deadline?: string | null;
+  atoReference: string;
+  atoReferenceUrl: string;
+  talkToCpa: boolean;
+  advisoryUrl: string;
+  isRisk: boolean;
+}
+
+export interface TaxStrategiesResponse {
+  financialYear: string;
+  empty: boolean;
+  message?: string | null;
+  totalPotentialSaving: number;
+  strategies: TaxStrategy[];
+}
+
 export interface SuccessResponse {
   success: boolean;
   message?: string | null;

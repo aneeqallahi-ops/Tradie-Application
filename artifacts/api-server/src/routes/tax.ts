@@ -19,6 +19,7 @@ import {
   pickBenchmarkBandForRevenue,
   type BenchmarkBand,
 } from "../lib/taxDataService";
+import { getApplicableStrategies, getMarginalRate, type UserContext } from "../lib/taxStrategies";
 
 const router: IRouter = Router();
 
@@ -494,6 +495,182 @@ router.post("/tax/prompts/:promptKey/dismiss", requireAuth, async (req: Request,
     res.json({ success: true, message: `Prompt "${promptKey}" dismissed for 30 days.` });
   } catch (err) {
     req.log.error({ err }, "Failed to dismiss prompt");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// GET /tax/strategies
+// ---------------------------------------------------------------------------
+router.get("/tax/strategies", requireAuth, async (req: Request, res: Response) => {
+  try {
+    const tradieUser = await getOrCreateTradieUser(getReplitUserId(req));
+    const userId = tradieUser.id;
+
+    const now = new Date();
+    const { start: fyStart, end: fyEnd } = getFinancialYearRange();
+    const msPerDay = 1000 * 60 * 60 * 24;
+    const fyDaysTotal = Math.ceil((fyEnd.getTime() - fyStart.getTime()) / msPerDay);
+    const fyDaysElapsed = Math.max(1, Math.ceil((now.getTime() - fyStart.getTime()) / msPerDay));
+    const daysToEofy = Math.max(0, Math.ceil((fyEnd.getTime() - now.getTime()) / msPerDay));
+
+    // Revenue
+    const [revRow] = await db
+      .select({ total: sum(invoicesTable.total), gst: sum(invoicesTable.gstAmount) })
+      .from(invoicesTable)
+      .where(and(
+        eq(invoicesTable.userId, userId),
+        gte(invoicesTable.createdAt, fyStart),
+        lte(invoicesTable.createdAt, fyEnd)
+      ));
+
+    const totalRevInc = parseFloat(revRow.total ?? "0");
+    const gstCollected = parseFloat(revRow.gst ?? "0");
+    const ytdRevenueExGst = Math.max(0, totalRevInc - gstCollected);
+
+    if (ytdRevenueExGst === 0 && fyDaysElapsed < 30) {
+      res.json({
+        financialYear: getFinancialYear(),
+        empty: true,
+        message: "Log revenue to unlock personalised tax strategies.",
+        totalPotentialSaving: 0,
+        strategies: [],
+      });
+      return;
+    }
+
+    // Expenses
+    const expensesByCategory = await db
+      .select({
+        category: expensesTable.category,
+        total: sum(expensesTable.amount),
+        gstClaimable: sum(expensesTable.gstClaimable),
+      })
+      .from(expensesTable)
+      .where(and(
+        eq(expensesTable.userId, userId),
+        gte(expensesTable.createdAt, fyStart),
+        lte(expensesTable.createdAt, fyEnd)
+      ))
+      .groupBy(expensesTable.category);
+
+    let ytdExpenses = 0;
+    let toolsExpensesYtd = 0;
+    for (const row of expensesByCategory) {
+      const exGst = Math.max(0, parseFloat(row.total ?? "0") - parseFloat(row.gstClaimable ?? "0"));
+      ytdExpenses += exGst;
+      if (row.category === "tools_equipment") toolsExpensesYtd += exGst;
+    }
+
+    // Vehicle km
+    const [vehRow] = await db
+      .select({
+        businessKm: sum(
+          sql`CASE WHEN ${vehicleTripsTable.isBusiness} THEN ${vehicleTripsTable.distanceKm} ELSE 0 END`
+        ),
+      })
+      .from(vehicleTripsTable)
+      .where(and(
+        eq(vehicleTripsTable.userId, userId),
+        gte(vehicleTripsTable.createdAt, fyStart),
+        lte(vehicleTripsTable.createdAt, fyEnd)
+      ));
+
+    const ytdBusinessKm = parseFloat(vehRow.businessKm ?? "0");
+
+    // Tax position for marginal rate + projected income
+    const taxPosition = calculateTaxPosition({
+      ytdRevenueExGst,
+      ytdExpenses,
+      ytdBusinessKm,
+      fyDaysElapsed,
+      fyDaysTotal,
+    });
+
+    const marginalRate = getMarginalRate(taxPosition.projectedTaxableIncome);
+
+    // Benchmark variance (needed for review_benchmarks strategy)
+    const benchmarkInfo = getBenchmarks(tradieUser.tradeType, tradieUser.annualTurnoverBand);
+    const benchmarkVariance: UserContext["benchmarkVariance"] = {};
+    if (benchmarkInfo.band && ytdRevenueExGst > 0) {
+      const band = benchmarkInfo.band;
+      const CATEGORY_TO_RATIO: Record<string, string> = {
+        materials: "costOfSales", tools_equipment: "costOfSales", equipment_hire: "costOfSales",
+        electrical_materials: "costOfSales", plumbing_materials: "costOfSales",
+        timber_materials: "costOfSales", building_materials: "costOfSales",
+        paint_materials: "costOfSales", hvac_materials: "costOfSales",
+        tile_materials: "costOfSales", landscaping_materials: "costOfSales",
+        concrete_materials: "costOfSales",
+        subcontractor: "labour", subcontractor_payment: "labour",
+        vehicle: "motorVehicle", vehicle_fuel: "motorVehicle", vehicle_other: "motorVehicle",
+      };
+      const buckets: Record<string, number> = { totalExpenses: 0, costOfSales: 0, labour: 0, motorVehicle: 0 };
+      for (const row of expensesByCategory) {
+        const exGst = Math.max(0, parseFloat(row.total ?? "0") - parseFloat(row.gstClaimable ?? "0"));
+        buckets.totalExpenses += exGst;
+        const mapped = CATEGORY_TO_RATIO[row.category ?? ""];
+        if (mapped && mapped in buckets) buckets[mapped] += exGst;
+      }
+      for (const key of ["totalExpenses", "costOfSales", "labour", "motorVehicle"] as const) {
+        const range = band[key] as { low: number; high: number } | undefined;
+        if (!range) continue;
+        const userValue = buckets[key] / ytdRevenueExGst;
+        benchmarkVariance[key] = {
+          status: userValue < range.low ? "below" : userValue > range.high ? "above" : "within",
+          userValue,
+          benchmarkLow: range.low,
+          benchmarkHigh: range.high,
+        };
+      }
+    }
+
+    const ctx: UserContext = {
+      tradeType: tradieUser.tradeType,
+      turnoverBand: tradieUser.annualTurnoverBand,
+      ytdRevenueExGst,
+      ytdExpenses,
+      ytdBusinessKm,
+      fyDaysElapsed,
+      fyDaysTotal,
+      daysToEofy,
+      marginalRate,
+      projectedTaxableIncome: taxPosition.projectedTaxableIncome,
+      projectedTotalTaxEoy: taxPosition.projectedTotalTaxEoy,
+      projectedAnnualIncome: taxPosition.projectedAnnualIncome,
+      trafficLight: taxPosition.trafficLight,
+      hasLogbook: !!tradieUser.logbookStartDate,
+      gstRegistered: tradieUser.gstRegistered ?? true,
+      toolsExpensesYtd,
+      benchmarkVariance,
+    };
+
+    const strategies = getApplicableStrategies(ctx);
+    const totalPotentialSaving = strategies
+      .filter(s => !s.isRisk)
+      .reduce((sum, s) => sum + s.estimatedSaving, 0);
+
+    // Compliance: log strategy calculation
+    await db.insert(taxAuditLogTable).values({
+      userId,
+      calculationType: "tax_strategies",
+      inputValues: JSON.stringify({
+        ytdRevenueExGst, ytdExpenses, ytdBusinessKm, marginalRate,
+        projectedTaxableIncome: taxPosition.projectedTaxableIncome,
+        trafficLight: taxPosition.trafficLight,
+        daysToEofy,
+      }),
+      ruleApplied: `FY${getFinancialYear()} strategy engine — ${strategies.length} strategies`,
+      result: JSON.stringify(strategies.map(s => ({ id: s.id, estimatedSaving: s.estimatedSaving }))),
+    });
+
+    res.json({
+      financialYear: getFinancialYear(),
+      empty: false,
+      totalPotentialSaving,
+      strategies,
+    });
+  } catch (err) {
+    req.log.error({ err }, "Failed to compute tax strategies");
     res.status(500).json({ error: "Internal server error" });
   }
 });

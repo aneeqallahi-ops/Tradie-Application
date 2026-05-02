@@ -50,6 +50,8 @@ export * from "./taxBenchmarksResponse";
 export * from "./taxBracket";
 export * from "./taxPositionResponse";
 export * from "./taxPromptsResponse";
+export * from "./taxStrategiesResponse";
+export * from "./taxStrategy";
 export * from "./tparSummary";
 export * from "./tradieUser";
 export * from "./tradieUserResponse";

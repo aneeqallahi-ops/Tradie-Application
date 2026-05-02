@@ -1517,6 +1517,31 @@ export const DismissPromptResponse = zod.object({
 });
 
 /**
+ * @summary Get personalised tax-minimisation strategies for the current user
+ */
+export const GetTaxStrategiesResponse = zod.object({
+  financialYear: zod.string(),
+  empty: zod.boolean(),
+  message: zod.string().nullish(),
+  totalPotentialSaving: zod.number(),
+  strategies: zod.array(
+    zod.object({
+      id: zod.string(),
+      title: zod.string(),
+      description: zod.string(),
+      category: zod.string(),
+      estimatedSaving: zod.number(),
+      deadline: zod.string().nullish(),
+      atoReference: zod.string(),
+      atoReferenceUrl: zod.string(),
+      talkToCpa: zod.boolean(),
+      advisoryUrl: zod.string(),
+      isRisk: zod.boolean(),
+    }),
+  ),
+});
+
+/**
  * @summary List notifications
  */
 export const GetNotificationsResponseItem = zod.object({

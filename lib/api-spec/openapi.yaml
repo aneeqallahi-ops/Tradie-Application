@@ -987,6 +987,21 @@ paths:
         "401":
           description: Unauthorized
 
+  /tax/strategies:
+    get:
+      operationId: getTaxStrategies
+      tags: [tax]
+      summary: Get personalised tax-minimisation strategies for the current user
+      responses:
+        "200":
+          description: Ranked strategy list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaxStrategiesResponse"
+        "401":
+          description: Unauthorized
+
   /notifications:
     get:
       operationId: getNotifications
@@ -2380,6 +2395,66 @@ components:
       required:
         - prompts
         - missedDeductions
+
+    TaxStrategy:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        estimatedSaving:
+          type: number
+        deadline:
+          type: string
+          nullable: true
+        atoReference:
+          type: string
+        atoReferenceUrl:
+          type: string
+        talkToCpa:
+          type: boolean
+        advisoryUrl:
+          type: string
+        isRisk:
+          type: boolean
+      required:
+        - id
+        - title
+        - description
+        - category
+        - estimatedSaving
+        - atoReference
+        - atoReferenceUrl
+        - talkToCpa
+        - advisoryUrl
+        - isRisk
+
+    TaxStrategiesResponse:
+      type: object
+      properties:
+        financialYear:
+          type: string
+        empty:
+          type: boolean
+        message:
+          type: string
+          nullable: true
+        totalPotentialSaving:
+          type: number
+        strategies:
+          type: array
+          items:
+            $ref: "#/components/schemas/TaxStrategy"
+      required:
+        - financialYear
+        - empty
+        - totalPotentialSaving
+        - strategies
 
     SuccessResponse:
       type: object

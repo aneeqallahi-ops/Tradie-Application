@@ -55,11 +55,20 @@ Tables in `lib/db/src/schema/`:
 - Financial year: 1 Jul–30 Jun
 - TPAR: Subcontractor payment tracking, due 28 August
 
-### Tax Intelligence & Compliance Layer (in progress)
+### Tax Intelligence & Compliance Layer
 - Reference data lives at project root: `/data/ato_tax_guidelines.json` and `/data/ato_benchmarks.json`. Loaded once at startup by `artifacts/api-server/src/lib/taxDataService.ts` — no module reads JSON directly.
 - Every user-facing tax calculation writes to `tax_audit_log` (best-effort; failures don't block the response).
-- Module 1 ✅: `GET /api/tax/position` → owed-today, EOFY projection, weekly set-aside, traffic light. Surfaced in dashboard `TaxPositionCard` with empty/loading/error states + drawer breakdown.
-- Modules 2 (benchmarks), 3 (deductible prompts), 4 (strategy engine), 5 (advisory marketplace) — pending project tasks.
+- Module 1 ✅: `GET /api/tax/position` → owed-today, EOFY projection, weekly set-aside, traffic light. Surfaced in dashboard `TaxPositionCard`.
+- Module 2 ✅: `GET /api/tax/benchmarks` → ATO industry benchmark ratios vs user actuals. Surfaced in `/tax` Benchmarks tab.
+- Module 3 ✅: `GET /api/tax/prompts` + `POST /tax/prompts/:key/dismiss` → trade-specific deductible categories with missed-deduction detection. Surfaced in `/tax` Deductions tab.
+- Module 4 ✅: `GET /api/tax/strategies` → Strategy Engine. Assembles full UserContext, runs 8 strategy definitions, ranks by estimated dollar saving, logs to `tax_audit_log`. Strategy definitions: `instant_asset_writeoff`, `vehicle_logbook`, `super_contributions`, `prepay_expenses`, `home_office`, `review_benchmarks`, `gst_threshold`, `payg_instalment`. Surfaced in `/tax` Strategies tab (default tab) with dark summary banner, collapsible strategy cards, ATO reference links, and "Talk to your CPA" buttons linking to `/advisory/new?strategy=STRATEGY_ID`.
+- Module 5 (advisory marketplace) — pending Task #5.
+
+### Tax Strategy Engine (Module 4) Key Files
+- `artifacts/api-server/src/lib/taxStrategies.ts` — 8 strategy definitions with `isApplicable(ctx)` + `calculateSaving(ctx)` + dynamic description
+- `artifacts/api-server/src/routes/tax.ts` — `GET /api/tax/strategies` route handler
+- `artifacts/tradeledger-v2/src/pages/tax/strategies.tsx` — Strategies tab UI
+- `artifacts/tradeledger-v2/src/pages/tax/index.tsx` — 3-tab layout (Strategies default, Benchmarks, Deductions)
 
 ### Document Numbering
 - Quotes: Q-YYYY-0001 (sequential, 4-digit padded, yearly)
