@@ -1,13 +1,13 @@
-import React, { useState } from "react";
+import React from "react";
 import { useGetDashboard, useGetTparSummary, useGetTaxPrompts } from "@workspace/api-client-react";
 import { Header, Layout } from "@/components/layout";
 import { formatCurrency, formatPercent } from "@/lib/format";
 import { StatusPill } from "@/components/status-pill";
-import { ChevronRight, Info, Plus, FileText, Camera, Navigation, X, CalendarClock, Users, Lightbulb } from "lucide-react";
+import { ChevronRight, Plus, FileText, Camera, Navigation, Lightbulb, TrendingUp } from "lucide-react";
 import { Link } from "wouter";
 import { Drawer, DrawerContent, DrawerTrigger, DrawerTitle } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
-import { TaxPositionCard } from "@/components/tax-position-card";
+import { motion } from "framer-motion";
 
 function fmtBasDate(iso: string) {
   const d = new Date(iso);
@@ -22,13 +22,12 @@ export default function Dashboard() {
   if (isLoading || !data) {
     return (
       <Layout>
-        <Header title="TradeLedger" />
-        <div className="p-5 space-y-4">
-          <div className="h-10 w-32 bg-gray-200 animate-pulse rounded-full" />
-          <div className="grid grid-cols-2 gap-3">
-            {[1, 2, 3, 4].map(i => <div key={i} className="h-28 bg-gray-200 animate-pulse rounded-2xl" />)}
+        <Header title="Overview" />
+        <div className="p-5 space-y-6">
+          <div className="h-32 bg-white/5 animate-pulse rounded-3xl" />
+          <div className="grid grid-cols-2 gap-4">
+            {[1, 2, 3, 4].map(i => <div key={i} className="h-32 bg-white/5 animate-pulse rounded-3xl" />)}
           </div>
-          <div className="h-40 bg-gray-200 animate-pulse rounded-2xl mt-4" />
         </div>
       </Layout>
     );
@@ -41,295 +40,226 @@ export default function Dashboard() {
 
   return (
     <Layout>
-      <Header title="TradeLedger" />
+      <Header title="Overview" />
       
-      <div className="px-5 pb-6 space-y-6">
-        {/* FY Selector */}
-        <div className="flex justify-center">
-          <div className="inline-flex items-center gap-3 bg-white px-4 py-2 rounded-full shadow-sm">
-            <button className="text-gray-400 hover:text-primary">&lt;</button>
-            <span className="font-semibold text-sm">{financialSummary.financialYear}</span>
-            <button className="text-gray-400 hover:text-primary">&gt;</button>
-          </div>
-        </div>
-
-        {/* 2x2 Stat Cards */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-primary text-white rounded-2xl p-4 flex flex-col justify-between shadow-sm">
-            <div className="text-sm text-gray-300 font-medium">This month</div>
-            <div className="mt-2">
-              <div className="text-2xl font-bold">{formatCurrency(thisMonthInvoiced)}</div>
-              <div className={`text-xs mt-1 ${momPercent >= 0 ? "text-green-400" : "text-red-400"}`}>
-                {momPercent >= 0 ? "+" : ""}{formatPercent(momPercent)} vs last
-              </div>
-            </div>
-          </div>
-          
-          <Link href="/quotes" className="bg-white rounded-2xl p-4 flex flex-col justify-between shadow-sm hover:bg-gray-50 active:scale-95 transition-all">
-            <div className="text-sm text-gray-500 font-medium">Pending quotes</div>
-            <div className="text-3xl font-bold mt-2">{pendingQuotesCount}</div>
-          </Link>
-          
-          <Link href="/jobs" className="bg-white rounded-2xl p-4 flex flex-col justify-between shadow-sm hover:bg-gray-50 active:scale-95 transition-all">
-            <div className="text-sm text-gray-500 font-medium">Active Jobs</div>
-            <div className="text-3xl font-bold mt-2">{activeJobsCount}</div>
-          </Link>
-          
-          <Link href="/jobs" className={`bg-white rounded-2xl p-4 flex flex-col justify-between shadow-sm hover:bg-gray-50 active:scale-95 transition-all ${unpaidInvoicesCount > 0 ? "border-l-4 border-l-red-600" : ""}`}>
-            <div className="text-sm text-gray-500 font-medium">Unpaid</div>
-            <div className="mt-2">
-              <div className="text-2xl font-bold">{unpaidInvoicesCount}</div>
-              {unpaidAmount > 0 && <div className="text-xs text-red-600 font-semibold mt-1">{formatCurrency(unpaidAmount)}</div>}
-            </div>
-          </Link>
-        </div>
-
-        {/* WYAK Card */}
+      <div className="px-5 pb-6 space-y-8">
+        
+        {/* Hero Value — WYAK */}
         <Drawer>
           <DrawerTrigger asChild>
-            <button className="w-full bg-white rounded-2xl p-5 shadow-sm border-l-4 border-l-accent flex items-center justify-between text-left active:scale-[0.98] transition-all">
-              <div>
-                <div className="text-[11px] font-bold text-gray-400 tracking-wider uppercase">What you actually keep</div>
-                <div className="text-3xl font-bold mt-1 tracking-tight">{formatCurrency(financialSummary.takeHome)}</div>
-                <div className="text-sm text-gray-500 mt-1">Estimated · {financialSummary.financialYear}</div>
+            <motion.button 
+              whileTap={{ scale: 0.98 }}
+              className="w-full relative overflow-hidden rounded-[2rem] bg-gradient-to-b from-white/10 to-white/5 border border-white/10 p-6 text-left shadow-2xl"
+            >
+              <div className="absolute top-0 right-0 p-6 opacity-20 text-primary pointer-events-none">
+                <TrendingUp className="w-32 h-32 -mt-8 -mr-8" />
               </div>
-              <ChevronRight className="text-gray-300 w-6 h-6" />
-            </button>
+              <div className="relative z-10">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_rgba(26,219,165,0.8)]" />
+                  <span className="text-[11px] font-bold text-primary tracking-widest uppercase">Est. Take Home</span>
+                </div>
+                <div className="text-5xl font-black text-white tracking-tighter mb-2">{formatCurrency(financialSummary.takeHome)}</div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-white/50">{financialSummary.financialYear} Financial Year</span>
+                  <div className="flex items-center gap-1 text-primary text-sm font-semibold">
+                    Details <ChevronRight className="w-4 h-4" />
+                  </div>
+                </div>
+              </div>
+            </motion.button>
           </DrawerTrigger>
-          <DrawerContent className="bg-white h-[88vh] rounded-t-[24px]">
+          <DrawerContent className="bg-card border-white/10 rounded-t-[2rem] max-h-[90vh]">
             <div className="p-6 overflow-y-auto pb-24">
-              <div className="flex items-center justify-between mb-6">
-                <DrawerTitle className="text-2xl font-bold">Your Money, Simplified</DrawerTitle>
-              </div>
-
+              <DrawerTitle className="text-2xl font-bold text-white mb-8">Take Home Breakdown</DrawerTitle>
+              
               <div className="space-y-6">
-                <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Total invoiced ({financialSummary.financialYear})</span>
-                    <span className="font-medium">{formatCurrency(financialSummary.totalInvoicedFy)}</span>
+                <div className="bg-white/5 rounded-3xl p-5 border border-white/5 space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-white/60 font-medium">Invoiced YTD</span>
+                    <span className="text-white font-bold">{formatCurrency(financialSummary.totalInvoicedFy)}</span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Minus GST collected</span>
-                    <span className="text-red-600 font-medium">-{formatCurrency(financialSummary.gstCollected)}</span>
+                  <div className="flex justify-between items-center text-destructive">
+                    <span className="font-medium">GST Collected</span>
+                    <span className="font-bold">-{formatCurrency(financialSummary.gstCollected)}</span>
                   </div>
-                  <div className="flex justify-between font-semibold border-t border-gray-100 pt-3">
-                    <span>Your actual income</span>
-                    <span>{formatCurrency(financialSummary.actualIncome)}</span>
+                  <div className="h-px bg-white/10 my-2" />
+                  <div className="flex justify-between items-center">
+                    <span className="text-white font-medium">Actual Income</span>
+                    <span className="text-white font-bold text-lg">{formatCurrency(financialSummary.actualIncome)}</span>
                   </div>
                 </div>
 
-                <div className="space-y-3 pt-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Business expenses</span>
-                    <span className="text-red-600 font-medium">-{formatCurrency(financialSummary.businessExpenses)}</span>
+                <div className="bg-white/5 rounded-3xl p-5 border border-white/5 space-y-4">
+                  <div className="flex justify-between items-center text-destructive">
+                    <span className="font-medium">Business Expenses</span>
+                    <span className="font-bold">-{formatCurrency(financialSummary.businessExpenses)}</span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Vehicle deduction</span>
+                  <div className="flex justify-between items-center text-destructive">
+                    <span className="font-medium">Vehicle Deduction</span>
                     {financialSummary.vehicleDeduction > 0 ? (
-                      <span className="text-red-600 font-medium">-{formatCurrency(financialSummary.vehicleDeduction)}</span>
+                      <span className="font-bold">-{formatCurrency(financialSummary.vehicleDeduction)}</span>
                     ) : (
-                      <Link href="/logbook" className="text-accent font-medium hover:underline">Set up logbook →</Link>
+                      <Link href="/logbook" className="text-primary font-bold hover:underline">Set up logbook →</Link>
                     )}
                   </div>
-                  <div className="flex justify-between font-semibold border-t border-gray-100 pt-3">
-                    <span>Taxable income</span>
-                    <span>{formatCurrency(financialSummary.taxableIncome)}</span>
+                  <div className="h-px bg-white/10 my-2" />
+                  <div className="flex justify-between items-center">
+                    <span className="text-white font-medium">Taxable Income</span>
+                    <span className="text-white font-bold text-lg">{formatCurrency(financialSummary.taxableIncome)}</span>
                   </div>
                 </div>
 
-                <div className="space-y-3 pt-2">
-                  <div className="flex justify-between text-sm items-center">
-                    <span className="text-gray-500 flex items-center gap-1">
-                      Estimated income tax & medicare
-                      <Info className="w-3.5 h-3.5 text-gray-400" />
-                    </span>
-                    <span className="text-red-600 font-medium">-{formatCurrency(financialSummary.estimatedIncomeTax + financialSummary.medicareLevy)}</span>
+                <div className="bg-white/5 rounded-3xl p-5 border border-white/5 space-y-4">
+                  <div className="flex justify-between items-center text-destructive">
+                    <span className="font-medium">Est. Tax & Medicare</span>
+                    <span className="font-bold">-{formatCurrency(financialSummary.estimatedIncomeTax + financialSummary.medicareLevy)}</span>
+                  </div>
+                  <div className="h-px bg-white/10 my-2" />
+                  <div className="flex justify-between items-center">
+                    <span className="text-primary font-bold">You Keep (Est.)</span>
+                    <span className="text-primary font-black text-2xl">{formatCurrency(financialSummary.takeHome)}</span>
                   </div>
                 </div>
 
-                <div className="bg-secondary rounded-2xl p-6 mt-6">
-                  <div className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">You keep approximately</div>
-                  <div className="text-5xl font-bold tracking-tight">{formatCurrency(financialSummary.takeHome)}</div>
-                  <div className="text-xs text-gray-400 mt-3">This is an estimate based on current tax rates and does not constitute financial advice.</div>
-                  
-                  <div className="flex w-full h-4 rounded-full overflow-hidden mt-6 bg-gray-100">
-                    <div className="bg-[#86EFAC]" style={{ width: `${financialSummary.yoursPercent}%` }} />
-                    <div className="bg-[#FDE68A]" style={{ width: `${financialSummary.expensesPercent}%` }} />
-                    <div className="bg-[#FCA5A5]" style={{ width: `${financialSummary.taxPercent}%` }} />
+                {/* Profit First Bar */}
+                <div className="mt-8">
+                  <h4 className="text-sm font-bold text-white mb-4">Target Allocation (per $1)</h4>
+                  <div className="flex w-full h-6 rounded-full overflow-hidden bg-white/10 shadow-inner">
+                    <div className="bg-primary transition-all duration-1000" style={{ width: `${financialSummary.yoursPercent}%` }} />
+                    <div className="bg-amber-400 transition-all duration-1000" style={{ width: `${financialSummary.expensesPercent}%` }} />
+                    <div className="bg-destructive transition-all duration-1000" style={{ width: `${financialSummary.taxPercent}%` }} />
                   </div>
-                  <div className="flex w-full text-[10px] uppercase font-bold text-gray-500 mt-2">
-                    {financialSummary.yoursPercent > 0 && (
-                      <div className="flex items-center gap-1 min-w-0" style={{ width: `${financialSummary.yoursPercent}%` }}>
-                        <span className="w-2 h-2 rounded-full bg-[#86EFAC] flex-shrink-0" />
-                        <span className="truncate">Yours {financialSummary.yoursPercent}%</span>
-                      </div>
-                    )}
-                    {financialSummary.expensesPercent > 0 && (
-                      <div className="flex items-center gap-1 min-w-0 justify-center" style={{ width: `${financialSummary.expensesPercent}%` }}>
-                        <span className="w-2 h-2 rounded-full bg-[#FDE68A] flex-shrink-0" />
-                        <span className="truncate">Exp {financialSummary.expensesPercent}%</span>
-                      </div>
-                    )}
-                    {financialSummary.taxPercent > 0 && (
-                      <div className="flex items-center gap-1 min-w-0 justify-end" style={{ width: `${financialSummary.taxPercent}%` }}>
-                        <span className="w-2 h-2 rounded-full bg-[#FCA5A5] flex-shrink-0" />
-                        <span className="truncate">Tax {financialSummary.taxPercent}%</span>
-                      </div>
-                    )}
+                  <div className="flex justify-between mt-3 text-xs font-bold uppercase tracking-wider">
+                    <span className="text-primary">Yours {financialSummary.yoursPercent}%</span>
+                    <span className="text-amber-400">Exp {financialSummary.expensesPercent}%</span>
+                    <span className="text-destructive">Tax {financialSummary.taxPercent}%</span>
                   </div>
                 </div>
 
-                <div className={`rounded-2xl p-5 border ${isBasUrgent ? 'bg-amber-50 border-amber-200' : 'bg-white border-gray-100 shadow-sm'}`}>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <div className="font-bold">Q{basPosition.quarter} BAS due {fmtBasDate(basPosition.dueDate)}</div>
-                      <div className={`text-sm mt-1 ${isBasUrgent ? 'text-amber-800 font-medium' : 'text-gray-500'}`}>
-                        {basPosition.daysUntilDue} days away
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-xs text-gray-500">Est. GST Payable</div>
-                      <div className="font-bold text-lg">{formatCurrency(basPosition.netGstPayable)}</div>
-                    </div>
-                  </div>
-                  {isBasUrgent && (
-                    <Button className="w-full mt-4 bg-accent hover:bg-accent/90 text-white rounded-full h-12">
-                      Lodge for $79
-                    </Button>
-                  )}
-                </div>
               </div>
             </div>
-            <div className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100">
+            <div className="absolute bottom-0 left-0 right-0 p-4 bg-card/80 backdrop-blur-xl border-t border-white/5">
               <DrawerTrigger asChild>
-                <Button className="w-full h-14 rounded-full text-lg font-semibold">Done</Button>
+                <Button className="w-full h-14 rounded-2xl text-lg font-bold bg-primary text-background hover:bg-primary/90">Done</Button>
               </DrawerTrigger>
             </div>
           </DrawerContent>
         </Drawer>
 
-        {/* Tax Position — What You'll Owe */}
-        <TaxPositionCard />
+        {/* Action Grid */}
+        <div className="grid grid-cols-4 gap-3">
+          <Link href="/quotes/new" className="flex flex-col items-center gap-2">
+            <div className="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-white/10 hover:border-primary/50 transition-all active:scale-95">
+              <Plus className="w-6 h-6" />
+            </div>
+            <span className="text-[10px] font-semibold text-white/60 uppercase tracking-wider">Quote</span>
+          </Link>
+          <Link href="/jobs" className="flex flex-col items-center gap-2">
+            <div className="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-white/10 hover:border-primary/50 transition-all active:scale-95">
+              <FileText className="w-6 h-6" />
+            </div>
+            <span className="text-[10px] font-semibold text-white/60 uppercase tracking-wider">Invoice</span>
+          </Link>
+          <Link href="/expenses/new" className="flex flex-col items-center gap-2">
+            <div className="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-white/10 hover:border-primary/50 transition-all active:scale-95">
+              <Camera className="w-6 h-6" />
+            </div>
+            <span className="text-[10px] font-semibold text-white/60 uppercase tracking-wider">Receipt</span>
+          </Link>
+          <Link href="/logbook" className="flex flex-col items-center gap-2">
+            <div className="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-white/10 hover:border-primary/50 transition-all active:scale-95">
+              <Navigation className="w-6 h-6" />
+            </div>
+            <span className="text-[10px] font-semibold text-white/60 uppercase tracking-wider">Drive</span>
+          </Link>
+        </div>
 
-        {/* Missed Deductions Card */}
+        {/* Key Metrics Grid */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-white/5 border border-white/10 rounded-3xl p-5">
+            <div className="text-xs font-bold text-white/50 uppercase tracking-wider mb-2">This Month</div>
+            <div className="text-2xl font-bold text-white">{formatCurrency(thisMonthInvoiced)}</div>
+            <div className={`text-xs mt-2 font-semibold ${momPercent >= 0 ? "text-primary" : "text-destructive"}`}>
+              {momPercent >= 0 ? "+" : ""}{formatPercent(momPercent)} vs last
+            </div>
+          </div>
+          
+          <Link href="/jobs" className={`bg-white/5 border rounded-3xl p-5 hover:bg-white/10 transition-colors ${unpaidInvoicesCount > 0 ? "border-destructive/50" : "border-white/10"}`}>
+            <div className="text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Awaiting Payment</div>
+            <div className="text-2xl font-bold text-white">{unpaidInvoicesCount} <span className="text-sm font-medium text-white/40">inv</span></div>
+            {unpaidAmount > 0 && <div className="text-xs text-destructive font-bold mt-2">{formatCurrency(unpaidAmount)} total</div>}
+          </Link>
+
+          <Link href="/quotes" className="bg-white/5 border border-white/10 rounded-3xl p-5 hover:bg-white/10 transition-colors">
+            <div className="text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Pending Quotes</div>
+            <div className="text-2xl font-bold text-white">{pendingQuotesCount}</div>
+          </Link>
+
+          <Link href="/jobs" className="bg-white/5 border border-white/10 rounded-3xl p-5 hover:bg-white/10 transition-colors">
+            <div className="text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Active Jobs</div>
+            <div className="text-2xl font-bold text-white">{activeJobsCount}</div>
+          </Link>
+        </div>
+
+        {/* BAS Warning */}
+        <div className={`rounded-3xl p-5 border relative overflow-hidden ${isBasUrgent ? 'bg-destructive/10 border-destructive/30' : 'bg-white/5 border-white/10'}`}>
+          {isBasUrgent && (
+            <div className="absolute top-0 right-0 w-32 h-32 bg-destructive/20 blur-3xl pointer-events-none rounded-full" />
+          )}
+          <div className="relative z-10 flex items-center justify-between">
+            <div>
+              <div className="text-xs font-bold uppercase tracking-wider mb-1 text-white/50">Q{basPosition.quarter} BAS Due</div>
+              <div className="font-bold text-white">{fmtBasDate(basPosition.dueDate)}</div>
+              <div className={`text-sm mt-1 font-semibold ${isBasUrgent ? 'text-destructive' : 'text-primary'}`}>
+                In {basPosition.daysUntilDue} days
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-white/40 mb-1">Est. GST</div>
+              <div className="font-bold text-xl text-white">{formatCurrency(basPosition.netGstPayable)}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Missed Deductions Alert */}
         {prompts && prompts.missedDeductions.length > 0 && (
-          <Link href="/tax" className="block bg-blue-50 border border-blue-200 rounded-2xl p-4 hover:bg-blue-100 active:scale-[0.98] transition-all">
-            <div className="flex items-start gap-3">
-              <div className="w-9 h-9 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
-                <Lightbulb className="w-5 h-5 text-blue-600" />
+          <Link href="/tax" className="block bg-primary/10 border border-primary/30 rounded-3xl p-5 hover:bg-primary/20 transition-colors relative overflow-hidden">
+             <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-primary/5 to-transparent pointer-events-none" />
+            <div className="relative z-10 flex items-start gap-4">
+              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0 mt-1">
+                <Lightbulb className="w-5 h-5 text-primary" />
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="font-bold text-blue-900 text-sm">
-                  {prompts.missedDeductions.length} deduction{prompts.missedDeductions.length !== 1 ? "s" : ""} you might have missed
+              <div>
+                <div className="font-bold text-white text-lg">
+                  {prompts.missedDeductions.length} deduction{prompts.missedDeductions.length !== 1 ? "s" : ""} to claim
                 </div>
-                <div className="text-xs text-blue-700 mt-0.5 line-clamp-1">
-                  {prompts.missedDeductions.slice(0, 3).map(d => d.label).join(", ")}
-                  {prompts.missedDeductions.length > 3 ? " & more" : ""}
+                <div className="text-sm text-white/70 mt-1 leading-relaxed">
+                  {prompts.missedDeductions.slice(0, 2).map(d => d.label).join(", ")}
+                  {prompts.missedDeductions.length > 2 ? " & more" : ""}
                 </div>
+                <div className="text-xs font-bold text-primary uppercase tracking-wider mt-3">Review Now →</div>
               </div>
-              <ChevronRight className="w-4 h-4 text-blue-400 shrink-0 mt-1" />
             </div>
           </Link>
         )}
 
-        {/* Quick Actions */}
-        <div className="bg-secondary rounded-2xl p-2 flex justify-between">
-          <Link href="/quotes/new" className="flex flex-col items-center justify-center p-3 rounded-xl hover:bg-white flex-1 transition-colors">
-            <Plus className="w-6 h-6 mb-1 text-primary" />
-            <span className="text-xs font-semibold">New Quote</span>
-          </Link>
-          <Link href="/jobs" className="flex flex-col items-center justify-center p-3 rounded-xl hover:bg-white flex-1 transition-colors">
-            <FileText className="w-6 h-6 mb-1 text-primary" />
-            <span className="text-xs font-semibold">Invoice</span>
-          </Link>
-          <Link href="/expenses/new" className="flex flex-col items-center justify-center p-3 rounded-xl hover:bg-white flex-1 transition-colors">
-            <Camera className="w-6 h-6 mb-1 text-primary" />
-            <span className="text-xs font-semibold">Scan</span>
-          </Link>
-          <Link href="/logbook" className="flex flex-col items-center justify-center p-3 rounded-xl hover:bg-white flex-1 transition-colors">
-            <Navigation className="w-6 h-6 mb-1 text-primary" />
-            <span className="text-xs font-semibold">Log Trip</span>
-          </Link>
-        </div>
-
-        {/* Compliance Section */}
+        {/* Recent Jobs */}
         <div>
-          <h3 className="text-lg font-bold mb-3">Compliance</h3>
-          <div className="space-y-3">
-
-            {/* BAS Card */}
-            <div className={`rounded-2xl p-4 shadow-sm border bg-white ${isBasUrgent ? 'border-l-4 border-l-accent border-gray-100' : 'border-gray-100'}`}>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3 flex-1">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center bg-secondary shrink-0">
-                    <CalendarClock className={`w-5 h-5 ${isBasUrgent ? 'text-accent' : 'text-primary'}`} />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="font-bold text-[15px] text-primary">
-                      Q{basPosition.quarter} BAS Due
-                    </div>
-                    <div className={`text-xs mt-0.5 font-medium ${isBasUrgent ? 'text-accent' : 'text-gray-500'}`}>
-                      {fmtBasDate(basPosition.dueDate)} · {basPosition.daysUntilDue} days away
-                    </div>
-                  </div>
-                </div>
-                <div className="text-right shrink-0 ml-4">
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Est. GST</div>
-                  <div className="font-bold text-base mt-0.5 text-primary">
-                    {formatCurrency(basPosition.netGstPayable)}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* TPAR / Subcontractor Payments Card */}
-            <Link href="/subcontractors" className="block rounded-2xl p-4 shadow-sm border border-gray-100 bg-white hover:bg-gray-50 active:scale-[0.98] transition-all">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3 flex-1">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center bg-secondary shrink-0">
-                    <Users className="w-5 h-5 text-primary" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="font-bold text-[15px] text-primary">TPAR</div>
-                    <div className="text-xs mt-0.5 font-medium text-gray-500">
-                      Due {tpar?.dueDate ?? "28 August"} · {tpar?.financialYear ?? "—"}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 shrink-0 ml-4">
-                  <div className="text-right">
-                    <div className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Paid to Subs</div>
-                    <div className="font-bold text-base mt-0.5 text-primary">
-                      {formatCurrency(tpar?.totalAmount ?? 0)}
-                    </div>
-                    <div className="text-[10px] text-gray-400 mt-0.5">
-                      {tpar?.subcontractors?.length ?? 0} contractor{(tpar?.subcontractors?.length ?? 0) !== 1 ? "s" : ""}
-                    </div>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-gray-300 shrink-0" />
-                </div>
-              </div>
-            </Link>
-
-          </div>
-        </div>
-
-        {/* Recent Activity */}
-        <div>
-          <h3 className="text-lg font-bold mb-3">Recent Activity</h3>
-          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+          <h3 className="text-lg font-bold text-white mb-4">Recent Activity</h3>
+          <div className="bg-white/5 border border-white/10 rounded-[2rem] overflow-hidden">
             {recentJobs.length === 0 ? (
-              <div className="p-6 text-center text-gray-500 text-sm">No recent activity</div>
+              <div className="p-8 text-center text-white/40 font-medium">No recent activity</div>
             ) : (
-              <div className="divide-y divide-gray-50">
+              <div className="divide-y divide-white/5">
                 {recentJobs.map(job => (
-                  <Link key={job.id} href={`/jobs/${job.id}`} className="block p-4 hover:bg-gray-50 transition-colors active:bg-gray-100">
-                    <div className="flex justify-between items-start mb-1">
-                      <div className="font-semibold text-[15px] text-primary truncate pr-2">{job.title}</div>
-                      <div className="font-bold text-right shrink-0">{job.total ? formatCurrency(job.total) : "—"}</div>
+                  <Link key={job.id} href={`/jobs/${job.id}`} className="block p-5 hover:bg-white/5 transition-colors">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="font-bold text-white truncate pr-4">{job.title}</div>
+                      <div className="font-bold text-white shrink-0">{job.total ? formatCurrency(job.total) : "—"}</div>
                     </div>
-                    <div className="flex justify-between items-center mt-2">
-                      <div className="text-xs text-gray-500">{job.client?.name}</div>
+                    <div className="flex justify-between items-center">
+                      <div className="text-sm text-white/50">{job.client?.name}</div>
                       <StatusPill status={job.status} />
                     </div>
                   </Link>
@@ -338,6 +268,7 @@ export default function Dashboard() {
             )}
           </div>
         </div>
+
       </div>
     </Layout>
   );

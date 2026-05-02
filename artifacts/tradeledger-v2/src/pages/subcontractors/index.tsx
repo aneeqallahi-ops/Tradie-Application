@@ -7,6 +7,7 @@ import { Drawer, DrawerContent, DrawerTrigger, DrawerTitle } from "@/components/
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/format";
 import { Users, Plus, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Subcontractors() {
   const { data: subs = [], isLoading } = useGetSubcontractors();
@@ -32,7 +33,6 @@ export default function Subcontractors() {
   };
 
   const isAbnValid = (abn: string) => {
-    // Basic fake validation for mockup
     return abn && abn.replace(/\s/g, '').length === 11;
   };
 
@@ -40,87 +40,110 @@ export default function Subcontractors() {
     <Layout>
       <Header title="Subcontractors" showBack onBack={() => window.history.back()} />
       
-      <div className="px-5 pb-32 animate-in fade-in">
+      <div className="px-6 pb-32 mt-2">
         
-        <div className="bg-amber-50 border-l-4 border-l-amber-500 p-4 rounded-xl mb-6">
-          <div className="font-semibold text-amber-900 text-sm">TPAR Due 28 August</div>
-          <div className="text-amber-800 text-xs mt-1">Taxable Payments Annual Report requires you to report total payments made to contractors for building and construction services.</div>
+        <div className="bg-amber-500/10 border border-amber-500/20 p-5 rounded-3xl mb-6 relative overflow-hidden">
+          <div className="absolute -right-6 -top-6 w-24 h-24 bg-amber-500/20 blur-2xl rounded-full" />
+          <div className="relative z-10 flex items-start gap-4">
+            <AlertTriangle className="w-6 h-6 text-amber-500 shrink-0 mt-0.5" />
+            <div>
+              <div className="font-bold text-amber-500 text-base mb-1">TPAR Due 28 August</div>
+              <div className="text-amber-500/80 text-sm font-medium leading-relaxed">Taxable Payments Annual Report requires you to report total payments made to contractors for building and construction services.</div>
+            </div>
+          </div>
         </div>
 
         {isLoading ? (
           <div className="space-y-4">
-            {[1, 2, 3].map(i => <div key={i} className="h-20 bg-gray-200 animate-pulse rounded-2xl" />)}
+            {[1, 2, 3].map(i => <div key={i} className="h-24 bg-white/5 border border-white/10 animate-pulse rounded-3xl" />)}
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="flex justify-between items-end mb-2">
-              <h3 className="font-bold text-lg text-gray-900">Your Register</h3>
-              <span className="text-sm font-semibold text-gray-500">{subs.length} Active</span>
+            <div className="flex justify-between items-end mb-4 px-2">
+              <h3 className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Your Register</h3>
+              <span className="text-[11px] font-bold text-primary uppercase tracking-widest">{subs.length} Active</span>
             </div>
             
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden divide-y divide-gray-50">
+            <AnimatePresence mode="popLayout">
               {subs.length === 0 ? (
-                <div className="p-8 text-center text-gray-500 text-sm">
-                  <Users className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-                  No subcontractors added yet.
-                </div>
-              ) : (
-                subs.map(sub => (
-                  <div key={sub.id} className="p-4">
-                    <div className="flex justify-between items-start mb-1">
-                      <div className="font-semibold text-[15px]">{sub.name}</div>
-                      <div className="font-bold">{formatCurrency(sub.totalPaidThisFy)}</div>
-                    </div>
-                    <div className="flex justify-between items-center mt-2">
-                      <div className="flex items-center gap-1.5 text-xs">
-                        <span className="text-gray-500">ABN: {sub.abn}</span>
-                        {isAbnValid(sub.abn || "") ? (
-                          <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
-                        ) : (
-                          <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
-                        )}
-                      </div>
-                      <div className="text-[10px] uppercase font-bold text-gray-400">Paid this FY</div>
-                    </div>
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="p-12 text-center text-muted-foreground bg-white/5 border border-white/10 rounded-3xl"
+                >
+                  <div className="w-16 h-16 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <Users className="w-8 h-8 text-white/40" />
                   </div>
-                ))
+                  <p className="font-bold text-white mb-2 text-lg">No subcontractors</p>
+                  <p className="text-sm">Add subcontractors to track payments for TPAR.</p>
+                </motion.div>
+              ) : (
+                <div className="bg-white/5 rounded-3xl border border-white/10 overflow-hidden divide-y divide-white/5">
+                  {subs.map((sub, idx) => (
+                    <motion.div 
+                      key={sub.id} 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                      className="p-5 hover:bg-white/[0.02] transition-colors"
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="font-bold text-white text-base">{sub.name}</div>
+                        <div className="font-black text-white text-lg tabular-nums tracking-tight">{formatCurrency(sub.totalPaidThisFy)}</div>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-2 text-xs font-medium">
+                          <span className="text-muted-foreground">ABN: {sub.abn}</span>
+                          {isAbnValid(sub.abn || "") ? (
+                            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                          ) : (
+                            <AlertTriangle className="w-4 h-4 text-amber-500" />
+                          )}
+                        </div>
+                        <div className="text-[10px] uppercase font-bold text-primary tracking-wider">Paid this FY</div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
               )}
-            </div>
+            </AnimatePresence>
           </div>
         )}
       </div>
 
       <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
         <DrawerTrigger asChild>
-          <div className="fixed bottom-[80px] right-5 w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-transform z-50 cursor-pointer">
-            <Plus className="w-6 h-6" />
+          <div className="fixed bottom-[88px] right-6 w-16 h-16 bg-primary text-black rounded-full flex items-center justify-center shadow-[0_8px_30px_rgba(20,184,166,0.3)] hover:scale-105 active:scale-95 transition-transform z-50 cursor-pointer">
+            <Plus className="w-7 h-7" />
           </div>
         </DrawerTrigger>
-        <DrawerContent className="bg-white h-[80vh] rounded-t-[24px]">
-          <div className="p-6">
-            <DrawerTitle className="text-2xl font-bold mb-6">Add Subcontractor</DrawerTitle>
+        <DrawerContent className="bg-[#1C1C1E] border-white/10 h-[85vh] rounded-t-[32px]">
+          <div className="p-6 overflow-y-auto pb-32">
+            <DrawerTitle className="text-2xl font-bold text-white mb-8">Add Subcontractor</DrawerTitle>
             
-            <div className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-400 uppercase">Contractor / Business Name *</label>
-                <Input value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="h-12 bg-secondary border-none" />
+            <div className="space-y-5">
+              <div className="space-y-2">
+                <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">Contractor / Business Name *</label>
+                <Input value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="h-14 bg-white/5 border-white/10 rounded-xl focus:ring-primary text-white font-bold" />
               </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-400 uppercase">ABN *</label>
-                <Input value={formData.abn} onChange={e => setFormData({...formData, abn: e.target.value})} placeholder="XX XXX XXX XXX" className="h-12 bg-secondary border-none" />
+              <div className="space-y-2">
+                <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">ABN *</label>
+                <Input value={formData.abn} onChange={e => setFormData({...formData, abn: e.target.value})} placeholder="XX XXX XXX XXX" className="h-14 bg-white/5 border-white/10 rounded-xl focus:ring-primary text-white font-medium" />
               </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-400 uppercase">Phone (Optional)</label>
-                <Input value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} type="tel" className="h-12 bg-secondary border-none" />
+              <div className="space-y-2">
+                <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">Phone (Optional)</label>
+                <Input value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} type="tel" className="h-14 bg-white/5 border-white/10 rounded-xl focus:ring-primary text-white font-medium" />
               </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-400 uppercase">Email (Optional)</label>
-                <Input value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} type="email" className="h-12 bg-secondary border-none" />
+              <div className="space-y-2">
+                <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">Email (Optional)</label>
+                <Input value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} type="email" className="h-14 bg-white/5 border-white/10 rounded-xl focus:ring-primary text-white font-medium" />
               </div>
             </div>
           </div>
-          <div className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100">
-            <Button onClick={handleSave} disabled={createSub.isPending} className="w-full h-14 rounded-full text-lg font-semibold">Save Contractor</Button>
+          <div className="absolute bottom-0 left-0 right-0 p-5 bg-[#1C1C1E]/80 backdrop-blur-xl border-t border-white/10">
+            <Button onClick={handleSave} disabled={createSub.isPending} className="w-full h-14 rounded-xl text-lg font-bold bg-primary hover:bg-primary/90 text-black shadow-[0_0_20px_rgba(20,184,166,0.3)]">
+              {createSub.isPending ? "Saving..." : "Save Contractor"}
+            </Button>
           </div>
         </DrawerContent>
       </Drawer>

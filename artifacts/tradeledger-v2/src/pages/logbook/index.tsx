@@ -8,9 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Drawer, DrawerContent, DrawerTrigger, DrawerTitle } from "@/components/ui/drawer";
 import { useToast } from "@/hooks/use-toast";
-import { Navigation, Car, Calendar, MapPin, Flag } from "lucide-react";
+import { Navigation, Car, MapPin, Flag } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { useQueryClient } from "@tanstack/react-query";
+import { motion } from "framer-motion";
 
 export default function Logbook() {
   const { toast } = useToast();
@@ -37,7 +38,7 @@ export default function Logbook() {
     return (
       <Layout>
         <Header title="Logbook" />
-        <div className="p-5"><div className="h-40 bg-gray-200 animate-pulse rounded-2xl" /></div>
+        <div className="p-6"><div className="h-48 bg-white/5 border border-white/10 animate-pulse rounded-3xl" /></div>
       </Layout>
     );
   }
@@ -85,32 +86,40 @@ export default function Logbook() {
     return (
       <Layout>
         <Header title="Logbook" />
-        <div className="px-5 pb-24 animate-in fade-in">
-          <div className="text-center py-10">
-            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Car className="w-10 h-10 text-gray-400" />
+        <div className="px-6 pb-24 h-full flex flex-col justify-center">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center max-w-md mx-auto w-full"
+          >
+            <div className="w-24 h-24 bg-primary/10 border border-primary/20 rounded-full flex items-center justify-center mx-auto mb-8 relative">
+              <Car className="w-10 h-10 text-primary" />
+              <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full -z-10" />
             </div>
-            <h2 className="text-2xl font-bold mb-2">Start your 12-week logbook</h2>
-            <p className="text-gray-500 text-sm mb-8 px-4">Track your trips for 12 continuous weeks to claim vehicle expenses on your tax return for up to 5 years.</p>
             
-            <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 space-y-4 text-left">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-400 uppercase">Vehicle Make</label>
-                <Input value={setupData.make} onChange={e => setSetupData({...setupData, make: e.target.value})} placeholder="e.g. Toyota" className="h-12 bg-secondary border-none" />
+            <h2 className="text-3xl font-bold tracking-tight text-white mb-3">Start your 12-week logbook</h2>
+            <p className="text-muted-foreground text-sm mb-10 leading-relaxed">
+              Track your trips for 12 continuous weeks to claim vehicle expenses on your tax return for up to 5 years.
+            </p>
+            
+            <div className="bg-white/5 backdrop-blur-md p-6 rounded-3xl border border-white/10 space-y-5 text-left">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Vehicle Make</label>
+                <Input value={setupData.make} onChange={e => setSetupData({...setupData, make: e.target.value})} placeholder="e.g. Toyota" className="h-14 bg-white/5 border-white/10 rounded-xl focus-visible:ring-primary text-white" />
               </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-400 uppercase">Vehicle Model</label>
-                <Input value={setupData.model} onChange={e => setSetupData({...setupData, model: e.target.value})} placeholder="e.g. Hilux" className="h-12 bg-secondary border-none" />
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Vehicle Model</label>
+                <Input value={setupData.model} onChange={e => setSetupData({...setupData, model: e.target.value})} placeholder="e.g. Hilux" className="h-14 bg-white/5 border-white/10 rounded-xl focus-visible:ring-primary text-white" />
               </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-400 uppercase">Current Odometer (km)</label>
-                <Input type="number" value={setupData.odometerStart} onChange={e => setSetupData({...setupData, odometerStart: e.target.value})} placeholder="0" className="h-12 bg-secondary border-none" />
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Current Odometer (km)</label>
+                <Input type="number" value={setupData.odometerStart} onChange={e => setSetupData({...setupData, odometerStart: e.target.value})} placeholder="0" className="h-14 bg-white/5 border-white/10 rounded-xl focus-visible:ring-primary text-white" />
               </div>
-              <Button onClick={handleSetup} disabled={setupLogbook.isPending} className="w-full h-14 rounded-full mt-4 bg-primary text-white font-semibold text-lg hover:scale-[0.98] transition-transform">
+              <Button onClick={handleSetup} disabled={setupLogbook.isPending} className="w-full h-14 rounded-xl mt-4 bg-primary text-black font-bold text-lg hover:bg-primary/90 shadow-[0_0_20px_rgba(20,184,166,0.3)]">
                 Start Logbook
               </Button>
             </div>
-          </div>
+          </motion.div>
         </div>
       </Layout>
     );
@@ -120,72 +129,94 @@ export default function Logbook() {
     <Layout>
       <Header title="Logbook" />
       
-      <div className="px-5 pb-32 space-y-6 animate-in fade-in">
-        
-        {/* Progress Card */}
-        <div className="bg-primary text-white rounded-3xl p-6 shadow-lg relative overflow-hidden">
-          <div className="absolute right-0 top-0 opacity-10 pointer-events-none translate-x-4 -translate-y-4">
-            <Car className="w-40 h-40" />
+      <div className="px-6 pb-32 space-y-6">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+          <div className="bg-white/5 border border-white/10 rounded-3xl p-6 relative overflow-hidden">
+            <div className="absolute -right-10 -top-10 opacity-5 pointer-events-none text-white">
+              <Car className="w-64 h-64" />
+            </div>
+            
+            <div className="flex justify-between items-start mb-2">
+              <div className="text-xs font-bold text-primary uppercase tracking-wider">Week {status.weekNumber} of 12</div>
+              <div className="text-xs font-medium bg-white/10 px-3 py-1 rounded-full text-white">{status.daysRemaining} days left</div>
+            </div>
+            
+            <div className="text-3xl font-bold tracking-tight text-white mb-6">{status.vehicleMake} {status.vehicleModel}</div>
+            
+            <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden mb-3">
+              <motion.div 
+                initial={{ width: 0 }}
+                animate={{ width: `${Math.min(100, ((status.weekNumber || 1) / 12) * 100)}%` }}
+                transition={{ duration: 1, ease: "easeOut" }}
+                className="h-full bg-primary rounded-full shadow-[0_0_10px_rgba(20,184,166,0.5)]" 
+              />
+            </div>
+            <div className="text-sm text-muted-foreground font-medium">
+              {status.tripsThisWeek} trips logged this week
+            </div>
           </div>
-          <div className="text-gray-300 text-sm font-medium mb-1">Week {status.weekNumber} of 12</div>
-          <div className="text-2xl font-bold mb-4">{status.vehicleMake} {status.vehicleModel}</div>
-          
-          <div className="h-2 w-full bg-white/20 rounded-full overflow-hidden mb-3">
-            <div className="h-full bg-white rounded-full" style={{ width: `${Math.min(100, ((status.weekNumber || 1) / 12) * 100)}%` }} />
-          </div>
-          <div className="flex justify-between text-xs text-gray-300 font-medium">
-            <span>{status.tripsThisWeek} trips this week</span>
-            <span>{status.daysRemaining} days left</span>
-          </div>
-        </div>
+        </motion.div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-3">
-          <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 text-center">
-            <div className="text-[10px] uppercase font-bold text-gray-400 mb-1">Total Km</div>
-            <div className="text-xl font-bold">{summary?.totalKm || 0}</div>
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="grid grid-cols-3 gap-3">
+          <div className="bg-white/5 border border-white/10 p-4 rounded-2xl text-center">
+            <div className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Total Km</div>
+            <div className="text-xl font-bold text-white">{summary?.totalKm || 0}</div>
           </div>
-          <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 text-center">
-            <div className="text-[10px] uppercase font-bold text-gray-400 mb-1">Biz Km</div>
+          <div className="bg-white/5 border border-white/10 p-4 rounded-2xl text-center">
+            <div className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Biz Km</div>
             <div className="text-xl font-bold text-primary">{summary?.businessKm || 0}</div>
           </div>
-          <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 text-center">
-            <div className="text-[10px] uppercase font-bold text-gray-400 mb-1">Biz %</div>
-            <div className="text-xl font-bold text-accent">{summary?.businessPercent?.toFixed(1) || 0}%</div>
+          <div className="bg-white/5 border border-white/10 p-4 rounded-2xl text-center">
+            <div className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Biz %</div>
+            <div className="text-xl font-bold text-white">{summary?.businessPercent?.toFixed(1) || 0}%</div>
           </div>
-        </div>
+        </motion.div>
 
         {summary && summary.estimatedTaxSaving > 0 && (
-          <div className="bg-[#DCFCE7] p-5 rounded-2xl border border-[#bbf7d0] flex items-center justify-between">
-            <div>
-              <div className="text-sm font-bold text-[#166534]">Est. Tax Saving</div>
-              <div className="text-xs text-[#166534] opacity-80 mt-0.5">Based on projected deduction</div>
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+            <div className="bg-primary/10 p-5 rounded-2xl border border-primary/20 flex items-center justify-between">
+              <div>
+                <div className="text-sm font-bold text-white">Est. Tax Saving</div>
+                <div className="text-xs text-primary/80 mt-1">Based on projected deduction</div>
+              </div>
+              <div className="text-2xl font-bold text-primary">{formatCurrency(summary.estimatedTaxSaving)}</div>
             </div>
-            <div className="text-2xl font-bold text-[#166534]">{formatCurrency(summary.estimatedTaxSaving)}</div>
-          </div>
+          </motion.div>
         )}
 
-        {/* Trip List */}
-        <div>
-          <h3 className="font-bold text-lg mb-3">Recent Trips</h3>
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden divide-y divide-gray-50">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+          <div className="flex items-center justify-between mb-4 mt-2">
+            <h3 className="font-bold tracking-tight text-lg text-white">Recent Trips</h3>
+          </div>
+          
+          <div className="bg-white/5 rounded-3xl border border-white/10 overflow-hidden divide-y divide-white/5">
             {summary?.trips?.length === 0 ? (
-              <div className="p-6 text-center text-gray-500 text-sm">No trips logged yet.</div>
+              <div className="p-8 text-center text-muted-foreground text-sm">No trips logged yet.</div>
             ) : (
-              summary?.trips?.map(trip => (
-                <div key={trip.id} className="p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex items-center gap-2">
-                      <div className={`w-2 h-2 rounded-full ${trip.isBusiness ? 'bg-accent' : 'bg-gray-300'}`} />
-                      <span className="font-bold text-sm">{trip.isBusiness ? 'Business' : 'Personal'}</span>
+              summary?.trips?.map((trip, idx) => (
+                <div key={trip.id} className="p-5 hover:bg-white/[0.02] transition-colors">
+                  <div className="flex justify-between items-center mb-4">
+                    <div className="flex items-center gap-2.5">
+                      <div className={`w-2.5 h-2.5 rounded-full shadow-sm ${trip.isBusiness ? 'bg-primary shadow-primary/40' : 'bg-white/40'}`} />
+                      <span className={`font-bold text-sm ${trip.isBusiness ? 'text-primary' : 'text-white/60'}`}>
+                        {trip.isBusiness ? 'Business' : 'Personal'}
+                      </span>
                     </div>
-                    <div className="font-bold">{trip.distanceKm} km</div>
+                    <div className="font-bold text-white">{trip.distanceKm} km</div>
                   </div>
-                  <div className="flex flex-col gap-1 text-sm text-gray-600 pl-4 relative before:absolute before:left-1 before:top-2 before:bottom-2 before:w-[2px] before:bg-gray-100">
-                    <div className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5 text-gray-400" /> {trip.startLocation || "Unknown"}</div>
-                    <div className="flex items-center gap-2"><Flag className="w-3.5 h-3.5 text-gray-400" /> {trip.endLocation || "Unknown"}</div>
+                  
+                  <div className="flex flex-col gap-3 text-sm text-white/80 pl-5 relative before:absolute before:left-[4px] before:top-2 before:bottom-2 before:w-[1px] before:bg-white/10">
+                    <div className="flex items-center gap-3">
+                      <MapPin className="w-3.5 h-3.5 text-muted-foreground absolute -left-1 bg-[#1A1A1E]" /> 
+                      <span className="truncate">{trip.startLocation || "Unknown"}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Flag className="w-3.5 h-3.5 text-muted-foreground absolute -left-1 bg-[#1A1A1E]" /> 
+                      <span className="truncate">{trip.endLocation || "Unknown"}</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-50 text-xs text-gray-400">
+                  
+                  <div className="flex justify-between items-center mt-4 pt-4 border-t border-white/5 text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
                     <span>{formatDate(trip.tripDate)}</span>
                     <span>{trip.purpose}</span>
                   </div>
@@ -193,82 +224,84 @@ export default function Logbook() {
               ))
             )}
           </div>
-        </div>
-
+        </motion.div>
       </div>
 
       <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
         <DrawerTrigger asChild>
-          <div className="fixed bottom-[80px] right-5 w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-transform z-50 cursor-pointer">
-            <Navigation className="w-6 h-6" />
+          <div className="fixed bottom-[88px] right-6 w-16 h-16 bg-primary text-black rounded-full flex items-center justify-center shadow-[0_8px_30px_rgba(20,184,166,0.3)] hover:scale-105 active:scale-95 transition-transform z-50 cursor-pointer">
+            <Navigation className="w-7 h-7 fill-current" />
           </div>
         </DrawerTrigger>
-        <DrawerContent className="bg-white h-[85vh] rounded-t-[24px]">
-          <div className="p-6 overflow-y-auto pb-24">
-            <DrawerTitle className="text-2xl font-bold mb-6">Log a Trip</DrawerTitle>
+        <DrawerContent className="bg-[#1C1C1E] border-white/10 h-[90vh] rounded-t-[32px]">
+          <div className="p-6 overflow-y-auto pb-28">
+            <DrawerTitle className="text-2xl font-bold text-white mb-6">Log a Trip</DrawerTitle>
             
-            <div className="space-y-5">
-              <div className="flex items-center justify-between p-4 bg-secondary rounded-2xl">
+            <div className="space-y-6">
+              <div className="flex items-center justify-between p-5 bg-white/5 border border-white/10 rounded-2xl">
                 <div>
-                  <div className="font-semibold">{tripData.isBusiness ? "Business Trip" : "Personal Trip"}</div>
-                  <div className="text-xs text-gray-500">Only business trips are tax deductible</div>
+                  <div className="font-bold text-white">{tripData.isBusiness ? "Business Trip" : "Personal Trip"}</div>
+                  <div className="text-xs text-muted-foreground mt-1">Only business trips are tax deductible</div>
                 </div>
                 <Switch 
                   checked={tripData.isBusiness}
                   onCheckedChange={v => setTripData({...tripData, isBusiness: v})}
-                  className={tripData.isBusiness ? "data-[state=checked]:bg-accent" : ""}
+                  className="data-[state=checked]:bg-primary"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-gray-400 uppercase">Date</label>
-                  <Input type="date" value={tripData.tripDate} onChange={e => setTripData({...tripData, tripDate: e.target.value})} className="h-12 bg-secondary border-none" />
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Date</label>
+                  <Input type="date" value={tripData.tripDate} onChange={e => setTripData({...tripData, tripDate: e.target.value})} className="h-14 bg-white/5 border-white/10 rounded-xl focus-visible:ring-primary text-white" />
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-gray-400 uppercase">Distance (km)</label>
-                  <Input type="number" value={tripData.distanceKm} onChange={e => setTripData({...tripData, distanceKm: e.target.value})} placeholder="0" className="h-12 bg-secondary border-none" />
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Distance (km)</label>
+                  <Input type="number" value={tripData.distanceKm} onChange={e => setTripData({...tripData, distanceKm: e.target.value})} placeholder="0" className="h-14 bg-white/5 border-white/10 rounded-xl focus-visible:ring-primary text-white font-medium" />
                 </div>
               </div>
 
-              <div className="space-y-4 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm relative before:absolute before:left-[27px] before:top-10 before:bottom-10 before:w-[2px] before:bg-gray-100">
-                <div className="relative">
-                  <MapPin className="absolute left-0 top-3.5 w-4 h-4 text-gray-400 bg-white" />
-                  <Input value={tripData.startLocation} onChange={e => setTripData({...tripData, startLocation: e.target.value})} placeholder="Start location" className="h-12 border-none pl-8 font-medium shadow-none focus-visible:ring-0" />
+              <div className="space-y-0 bg-white/5 border border-white/10 rounded-2xl relative before:absolute before:left-[27px] before:top-12 before:bottom-12 before:w-[2px] before:bg-white/10">
+                <div className="relative p-2">
+                  <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground bg-[#1A1A1E] z-10" />
+                  <Input value={tripData.startLocation} onChange={e => setTripData({...tripData, startLocation: e.target.value})} placeholder="Start location" className="h-14 bg-transparent border-none pl-12 font-medium text-white focus-visible:ring-0 placeholder:text-white/30" />
                 </div>
-                <div className="relative border-t border-gray-50 pt-2">
-                  <Flag className="absolute left-0 top-5 w-4 h-4 text-gray-400 bg-white" />
-                  <Input value={tripData.endLocation} onChange={e => setTripData({...tripData, endLocation: e.target.value})} placeholder="End location" className="h-12 border-none pl-8 font-medium shadow-none focus-visible:ring-0" />
+                <div className="h-px bg-white/10 mx-4" />
+                <div className="relative p-2">
+                  <Flag className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground bg-[#1A1A1E] z-10" />
+                  <Input value={tripData.endLocation} onChange={e => setTripData({...tripData, endLocation: e.target.value})} placeholder="End location" className="h-14 bg-transparent border-none pl-12 font-medium text-white focus-visible:ring-0 placeholder:text-white/30" />
                 </div>
               </div>
 
               {tripData.isBusiness && (
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-gray-400 uppercase">Purpose</label>
+                <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Purpose</label>
                   <Select value={tripData.purpose} onValueChange={v => setTripData({...tripData, purpose: v})}>
-                    <SelectTrigger className="h-12 bg-secondary border-none font-medium">
+                    <SelectTrigger className="h-14 bg-white/5 border-white/10 rounded-xl focus:ring-primary text-white font-medium">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Job site travel">Job site travel</SelectItem>
-                      <SelectItem value="Picking up materials">Picking up materials</SelectItem>
-                      <SelectItem value="Quoting/Estimating">Quoting/Estimating</SelectItem>
-                      <SelectItem value="Meeting client">Meeting client</SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
+                    <SelectContent className="bg-[#1C1C1E] border-white/10 text-white">
+                      <SelectItem value="Job site travel" className="focus:bg-white/10">Job site travel</SelectItem>
+                      <SelectItem value="Picking up materials" className="focus:bg-white/10">Picking up materials</SelectItem>
+                      <SelectItem value="Quoting/Estimating" className="focus:bg-white/10">Quoting/Estimating</SelectItem>
+                      <SelectItem value="Meeting client" className="focus:bg-white/10">Meeting client</SelectItem>
+                      <SelectItem value="Other" className="focus:bg-white/10">Other</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               )}
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-400 uppercase">Notes</label>
-                <Textarea value={tripData.notes} onChange={e => setTripData({...tripData, notes: e.target.value})} placeholder="Optional notes..." className="bg-secondary border-none resize-none" />
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Notes</label>
+                <Textarea value={tripData.notes} onChange={e => setTripData({...tripData, notes: e.target.value})} placeholder="Optional notes..." className="bg-white/5 border-white/10 rounded-xl focus-visible:ring-primary text-white resize-none min-h-[100px]" />
               </div>
 
             </div>
           </div>
-          <div className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100">
-            <Button onClick={handleLogTrip} disabled={logTrip.isPending} className="w-full h-14 rounded-full text-lg font-semibold">Save Trip</Button>
+          <div className="absolute bottom-0 left-0 right-0 p-5 bg-[#1C1C1E]/80 backdrop-blur-xl border-t border-white/10">
+            <Button onClick={handleLogTrip} disabled={logTrip.isPending} className="w-full h-14 rounded-xl text-lg font-bold bg-primary text-black hover:bg-primary/90 shadow-[0_0_20px_rgba(20,184,166,0.3)]">
+              {logTrip.isPending ? "Saving..." : "Save Trip"}
+            </Button>
           </div>
         </DrawerContent>
       </Drawer>

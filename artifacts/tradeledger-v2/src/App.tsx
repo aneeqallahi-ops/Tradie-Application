@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@workspace/replit-auth-web";
 import { useGetMe } from "@workspace/api-client-react";
+import { motion } from "framer-motion";
 
 import Dashboard from "./pages/dashboard";
 import QuotesList from "./pages/quotes";
@@ -35,19 +36,37 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
 
   if (isLoading || (isAuthenticated && meLoading)) {
     return <div className="min-h-screen bg-background flex items-center justify-center">
-      <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
     </div>;
   }
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center">
-        <div className="w-20 h-20 bg-primary text-white rounded-3xl flex items-center justify-center text-3xl font-bold mb-6 shadow-xl">TL</div>
-        <h1 className="text-4xl font-bold text-primary mb-3 tracking-tight">TradeLedger</h1>
-        <p className="text-gray-500 mb-10 text-lg max-w-[280px]">Premium business management for Australian tradies.</p>
-        <button onClick={() => login()} className="w-full max-w-[300px] h-14 bg-primary text-white rounded-full font-semibold text-lg hover:scale-[0.98] transition-transform shadow-lg">
-          Log In
-        </button>
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-8 text-center relative overflow-hidden">
+        {/* Glow Effects */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-primary/20 rounded-full blur-[100px] pointer-events-none" />
+        
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="relative z-10 w-full max-w-sm"
+        >
+          <div className="w-24 h-24 bg-gradient-to-br from-primary to-primary/50 text-background rounded-[2rem] flex items-center justify-center text-4xl font-bold mb-8 shadow-[0_0_40px_rgba(26,219,165,0.3)] mx-auto ring-1 ring-white/10">
+            TL
+          </div>
+          <h1 className="text-5xl font-black text-white mb-4 tracking-tighter">TradeLedger</h1>
+          <p className="text-muted-foreground mb-12 text-lg leading-relaxed">
+            The financial cockpit for Australian tradies. See exactly where you stand.
+          </p>
+          
+          <button 
+            onClick={() => login()} 
+            className="w-full h-16 bg-primary text-background rounded-full font-bold text-lg hover:bg-primary/90 hover:scale-[0.98] transition-all shadow-[0_0_20px_rgba(26,219,165,0.2)]"
+          >
+            Access Dashboard
+          </button>
+        </motion.div>
       </div>
     );
   }

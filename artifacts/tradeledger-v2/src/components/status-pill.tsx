@@ -11,46 +11,50 @@ export function StatusPill({ status, className }: StatusPillProps) {
   
   const normalized = status.toUpperCase();
   
-  let bg = "bg-gray-100";
-  let text = "text-gray-700";
+  let bg = "bg-white/10";
+  let text = "text-white/80";
+  let border = "border-white/10";
   let label = status;
 
   switch (normalized) {
     case "COMPLETE":
     case "COMPLETED":
-      bg = "bg-[#DCFCE7]";
-      text = "text-[#166534]";
-      label = "Complete";
+    case "PAID":
+    case "ACCEPTED":
+      bg = "bg-emerald-500/10";
+      text = "text-emerald-400";
+      border = "border-emerald-500/20";
+      label = normalized === "PAID" ? "Paid" : normalized === "ACCEPTED" ? "Accepted" : "Complete";
       break;
     case "IN_PROGRESS":
     case "IN PROGRESS":
     case "ACTIVE":
-      bg = "bg-[#FEF9C3]";
-      text = "text-[#854D0E]";
+      bg = "bg-amber-500/10";
+      text = "text-amber-400";
+      border = "border-amber-500/20";
       label = "In Progress";
       break;
     case "QUOTE":
     case "PENDING":
     case "SENT":
     case "DRAFT":
-      bg = "bg-[#EFF6FF]";
-      text = "text-[#1D4ED8]";
+      bg = "bg-primary/10";
+      text = "text-primary";
+      border = "border-primary/20";
+      label = normalized === "QUOTE" ? "Quote" : normalized === "PENDING" ? "Pending" : normalized === "SENT" ? "Sent" : "Draft";
       break;
     case "OVERDUE":
     case "DECLINED":
     case "CANCELLED":
-      bg = "bg-[#FEE2E2]";
-      text = "text-[#991B1B]";
-      break;
-    case "PAID":
-    case "ACCEPTED":
-      bg = "bg-[#F0FDF4]";
-      text = "text-[#166534]";
+      bg = "bg-red-500/10";
+      text = "text-red-400";
+      border = "border-red-500/20";
+      label = normalized === "OVERDUE" ? "Overdue" : normalized === "DECLINED" ? "Declined" : "Cancelled";
       break;
   }
 
   return (
-    <span className={cn("px-2.5 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap", bg, text, className)}>
+    <span className={cn("px-2.5 py-1 rounded-md text-[11px] font-semibold tracking-wide whitespace-nowrap border backdrop-blur-sm uppercase", bg, text, border, className)}>
       {label}
     </span>
   );

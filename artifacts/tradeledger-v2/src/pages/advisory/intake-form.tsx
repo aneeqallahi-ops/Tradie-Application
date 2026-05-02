@@ -3,6 +3,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { useCreateAdvisoryRequest } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { CheckCircle } from "lucide-react";
+import { motion } from "framer-motion";
 
 export type ServiceType = "tax_advisory" | "mortgage_advisory" | "property_sourcing" | "business_funding";
 export type SourceModule = "manual" | "tax_position" | "benchmark_alert" | "strategy_engine" | "deductible_prompt";
@@ -95,48 +96,49 @@ export function IntakeForm({ open, onClose, serviceType, prefillIncome, prefillI
 
   return (
     <Sheet open={open} onOpenChange={v => !v && handleClose()}>
-      <SheetContent side="bottom" className="rounded-t-3xl max-h-[90vh] overflow-y-auto">
-        <SheetHeader className="mb-5">
-          <SheetTitle className="text-lg font-bold text-primary">
+      <SheetContent side="bottom" className="bg-[#1C1C1E] border-white/10 rounded-t-[32px] max-h-[90vh] overflow-y-auto px-6 py-8">
+        <SheetHeader className="mb-8">
+          <SheetTitle className="text-2xl font-black text-white tracking-tight text-left">
             {SERVICE_LABELS[serviceType]}
           </SheetTitle>
         </SheetHeader>
 
         {submitted ? (
-          <div className="flex flex-col items-center py-10 text-center gap-4">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-              <CheckCircle className="w-8 h-8 text-green-600" />
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center py-10 text-center gap-6">
+            <div className="w-20 h-20 bg-primary/20 border border-primary/30 rounded-full flex items-center justify-center relative shadow-[0_0_30px_rgba(20,184,166,0.3)]">
+              <CheckCircle className="w-10 h-10 text-primary relative z-10" />
+              <div className="absolute inset-0 bg-primary/20 rounded-full animate-ping" />
             </div>
             <div>
-              <p className="font-bold text-primary text-lg">Request sent!</p>
-              <p className="text-sm text-gray-500 mt-1 max-w-xs">
+              <p className="font-black text-white text-2xl tracking-tight mb-2">Request sent!</p>
+              <p className="text-sm font-medium text-white/70 max-w-xs mx-auto leading-relaxed">
                 We've received your request — a specialist will be in touch within 1 business day.
               </p>
             </div>
             <button
               onClick={handleClose}
-              className="mt-2 w-full bg-primary text-white font-semibold py-3 rounded-xl text-sm"
+              className="mt-4 w-full bg-white/5 border border-white/10 hover:bg-white/10 text-white font-bold py-4 rounded-xl text-lg transition-colors"
             >
               Done
             </button>
-          </div>
+          </motion.div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-5 pb-8">
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+          <form onSubmit={handleSubmit} className="space-y-6 pb-8">
+            <div className="space-y-2">
+              <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block pl-1">
                 Service
               </label>
-              <div className="bg-secondary/60 rounded-xl px-4 py-3 text-sm font-medium text-primary">
+              <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-base font-bold text-white">
                 {SERVICE_LABELS[serviceType]}
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide" htmlFor="income">
+            <div className="space-y-2">
+              <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block pl-1" htmlFor="income">
                 Current annual income
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium text-sm">$</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 font-black text-xl">$</span>
                 <input
                   id="income"
                   type="number"
@@ -145,19 +147,19 @@ export function IntakeForm({ open, onClose, serviceType, prefillIncome, prefillI
                   placeholder="e.g. 120000"
                   value={income}
                   onChange={e => { setIncome(e.target.value); setIncomeTouched(true); }}
-                  className="w-full bg-secondary/60 rounded-xl pl-8 pr-4 py-3 text-sm text-primary font-medium focus:outline-none focus:ring-2 focus:ring-accent/30"
+                  className="w-full bg-black/20 border border-white/10 rounded-xl pl-10 pr-4 py-4 text-lg text-white font-black tabular-nums tracking-tight focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-white/20"
                   data-testid="advisory-income-input"
                 />
               </div>
               {!incomeTouched && PREFILL_LABELS[prefillIncomeSource] && (
-                <p className="text-[10px] text-gray-400 mt-1 px-1" data-testid="advisory-income-prefill-label">
-                  {PREFILL_LABELS[prefillIncomeSource]}
+                <p className="text-[10px] font-bold text-primary uppercase tracking-wider mt-2 px-1" data-testid="advisory-income-prefill-label">
+                  Prefilled: {PREFILL_LABELS[prefillIncomeSource]}
                 </p>
               )}
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide" htmlFor="help">
+            <div className="space-y-2">
+              <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block pl-1" htmlFor="help">
                 What do you need help with?
               </label>
               <textarea
@@ -166,22 +168,22 @@ export function IntakeForm({ open, onClose, serviceType, prefillIncome, prefillI
                 placeholder="Describe what you're looking for help with..."
                 value={helpNeeded}
                 onChange={e => { setHelpNeeded(e.target.value); setHelpTouched(true); }}
-                className="w-full bg-secondary/60 rounded-xl px-4 py-3 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent/30 resize-none"
+                className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-4 text-base text-white font-medium focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none placeholder:text-white/30"
               />
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide" htmlFor="urgency">
+            <div className="space-y-2">
+              <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block pl-1" htmlFor="urgency">
                 How urgent is this?
               </label>
               <select
                 id="urgency"
                 value={urgency}
                 onChange={e => setUrgency(e.target.value as typeof urgency)}
-                className="w-full bg-secondary/60 rounded-xl px-4 py-3 text-sm text-primary font-medium focus:outline-none focus:ring-2 focus:ring-accent/30 appearance-none"
+                className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-4 text-base text-white font-bold focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all appearance-none"
               >
                 {URGENCY_OPTIONS.map(o => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
+                  <option key={o.value} value={o.value} className="bg-[#1C1C1E]">{o.label}</option>
                 ))}
               </select>
             </div>
@@ -189,7 +191,7 @@ export function IntakeForm({ open, onClose, serviceType, prefillIncome, prefillI
             <button
               type="submit"
               disabled={createRequest.isPending}
-              className="w-full bg-primary text-white font-semibold py-3 rounded-xl text-sm disabled:opacity-60"
+              className="w-full bg-primary hover:bg-primary/90 text-black font-bold py-4 rounded-xl text-lg shadow-[0_0_20px_rgba(20,184,166,0.3)] transition-all active:scale-[0.98] disabled:opacity-60 disabled:active:scale-100 mt-4"
             >
               {createRequest.isPending ? "Sending..." : "Book a call"}
             </button>

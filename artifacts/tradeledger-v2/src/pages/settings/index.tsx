@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { useQueryClient } from "@tanstack/react-query";
 import { TRADE_CARDS, type TradeType } from "@/lib/trade-config";
+import { motion } from "framer-motion";
 
 const STATES = ["NSW", "VIC", "QLD", "WA", "SA", "TAS", "ACT", "NT"];
 
@@ -120,152 +121,169 @@ export default function Settings() {
     <Layout>
       <Header title="Settings" />
       
-      <div className="px-5 pb-24 space-y-8 animate-in fade-in">
+      <div className="px-6 pb-32 space-y-8">
         
         {/* Profile Header */}
-        <div className="flex items-center gap-4 bg-white p-5 rounded-3xl shadow-sm border border-gray-100">
-          <div className="w-16 h-16 rounded-full bg-primary text-white flex items-center justify-center text-xl font-bold shrink-0">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-5 bg-white/5 p-6 rounded-3xl border border-white/10 backdrop-blur-md relative overflow-hidden">
+          <div className="absolute -right-4 -top-4 w-32 h-32 bg-primary/10 blur-3xl rounded-full" />
+          <div className="w-16 h-16 rounded-2xl bg-primary text-black flex items-center justify-center text-2xl font-black shrink-0 shadow-[0_0_20px_rgba(20,184,166,0.3)]">
             {initials}
           </div>
-          <div className="flex-1 min-w-0">
-            <h2 className="text-xl font-bold truncate">{me?.user?.businessName || "Your Business"}</h2>
-            <div className="text-gray-500 text-sm mt-0.5 font-medium">ABN: {me?.user?.abn || "Not set"}</div>
-            <div className="text-sm mt-1 font-medium text-accent">{currentTradeCard.emoji} {currentTradeCard.label}</div>
+          <div className="flex-1 min-w-0 relative z-10">
+            <h2 className="text-xl font-bold text-white truncate">{me?.user?.businessName || "Your Business"}</h2>
+            <div className="text-muted-foreground text-sm mt-0.5 font-medium">ABN: {me?.user?.abn || "Not set"}</div>
+            <div className="inline-flex items-center gap-1.5 mt-2 bg-white/5 border border-white/10 px-2.5 py-1 rounded-md text-xs font-semibold text-white">
+              <span>{currentTradeCard.emoji}</span> {currentTradeCard.label}
+            </div>
           </div>
           <button
             onClick={() => setEditOpen(true)}
-            className="p-2 rounded-full hover:bg-secondary transition-colors text-gray-400 hover:text-primary"
+            className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-muted-foreground hover:text-white hover:bg-white/10 transition-colors shrink-0 z-10"
           >
-            <Edit2 className="w-5 h-5" />
+            <Edit2 className="w-4 h-4" />
           </button>
-        </div>
+        </motion.div>
 
         {/* Sections */}
-        <div className="space-y-6">
+        <div className="space-y-8">
           
-          <section>
-            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 pl-2">Account</h3>
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden divide-y divide-gray-50">
-              <button onClick={() => setEditOpen(true)} className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors active:bg-gray-100">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
-                    <span className="text-base leading-none">{currentTradeCard.emoji}</span>
+          <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+            <h3 className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-3 px-2">Account Details</h3>
+            <div className="bg-white/5 rounded-3xl border border-white/10 overflow-hidden divide-y divide-white/5 backdrop-blur-md">
+              <button onClick={() => setEditOpen(true)} className="w-full flex items-center justify-between p-5 hover:bg-white/[0.02] transition-colors group">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                    <span className="text-xl leading-none">{currentTradeCard.emoji}</span>
                   </div>
-                  <span className="font-medium">Trade Type</span>
+                  <span className="font-semibold text-white">Trade Type</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-500">{currentTradeCard.label}</span>
-                  <ChevronRight className="w-5 h-5 text-gray-300" />
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-muted-foreground">{currentTradeCard.label}</span>
+                  <ChevronRight className="w-5 h-5 text-muted-foreground/50 group-hover:text-white transition-colors" />
                 </div>
               </button>
-              <button onClick={() => setEditOpen(true)} className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors active:bg-gray-100">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center"><Building className="w-4 h-4 text-gray-600" /></div>
-                  <span className="font-medium">Business Details</span>
+              <button onClick={() => setEditOpen(true)} className="w-full flex items-center justify-between p-5 hover:bg-white/[0.02] transition-colors group">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                    <Building className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                  </div>
+                  <span className="font-semibold text-white">Business Details</span>
                 </div>
-                <ChevronRight className="w-5 h-5 text-gray-300" />
+                <ChevronRight className="w-5 h-5 text-muted-foreground/50 group-hover:text-white transition-colors" />
               </button>
-              <button onClick={() => setEditOpen(true)} className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors active:bg-gray-100">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center"><MapPin className="w-4 h-4 text-gray-600" /></div>
-                  <span className="font-medium">State & Region</span>
+              <button onClick={() => setEditOpen(true)} className="w-full flex items-center justify-between p-5 hover:bg-white/[0.02] transition-colors group">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                    <MapPin className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                  </div>
+                  <span className="font-semibold text-white">State & Region</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-500">{me?.user?.state}</span>
-                  <ChevronRight className="w-5 h-5 text-gray-300" />
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-muted-foreground">{me?.user?.state}</span>
+                  <ChevronRight className="w-5 h-5 text-muted-foreground/50 group-hover:text-white transition-colors" />
                 </div>
               </button>
             </div>
-          </section>
+          </motion.section>
 
-          <section>
-            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 pl-2">Preferences</h3>
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden divide-y divide-gray-50">
-              <button onClick={() => setEditOpen(true)} className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors active:bg-gray-100">
-                <span className="font-medium text-gray-700">Default Hourly Rate</span>
-                <span className="font-bold">${me?.user?.hourlyRate || "85"}/hr</span>
+          <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+            <h3 className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-3 px-2">Financial Preferences</h3>
+            <div className="bg-white/5 rounded-3xl border border-white/10 overflow-hidden divide-y divide-white/5 backdrop-blur-md">
+              <button onClick={() => setEditOpen(true)} className="w-full flex items-center justify-between p-5 hover:bg-white/[0.02] transition-colors">
+                <span className="font-semibold text-white">Default Hourly Rate</span>
+                <span className="font-bold text-primary text-lg">${me?.user?.hourlyRate || "85"}<span className="text-sm text-muted-foreground">/hr</span></span>
               </button>
-              <button onClick={() => setEditOpen(true)} className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors active:bg-gray-100">
-                <span className="font-medium text-gray-700">Default Markup</span>
-                <span className="font-bold">{me?.user?.defaultMarkupPercent || "20"}%</span>
+              <button onClick={() => setEditOpen(true)} className="w-full flex items-center justify-between p-5 hover:bg-white/[0.02] transition-colors">
+                <span className="font-semibold text-white">Default Markup</span>
+                <span className="font-bold text-white">{me?.user?.defaultMarkupPercent || "20"}%</span>
               </button>
-              <button onClick={() => setEditOpen(true)} className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors active:bg-gray-100">
-                <span className="font-medium text-gray-700">Tax Set-aside</span>
-                <span className="font-bold text-red-600">{me?.user?.profitFirstTaxPercent || "15"}%</span>
+              <button onClick={() => setEditOpen(true)} className="w-full flex items-center justify-between p-5 hover:bg-white/[0.02] transition-colors">
+                <span className="font-semibold text-white">Tax Set-aside</span>
+                <span className="font-bold text-red-400">{me?.user?.profitFirstTaxPercent || "15"}%</span>
               </button>
-              <button onClick={() => setEditOpen(true)} className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors active:bg-gray-100">
-                <span className="font-medium text-gray-700">Expenses Float</span>
-                <span className="font-bold text-amber-600">{me?.user?.profitFirstExpensesPercent || "10"}%</span>
+              <button onClick={() => setEditOpen(true)} className="w-full flex items-center justify-between p-5 hover:bg-white/[0.02] transition-colors">
+                <span className="font-semibold text-white">Expenses Float</span>
+                <span className="font-bold text-amber-400">{me?.user?.profitFirstExpensesPercent || "10"}%</span>
               </button>
             </div>
-          </section>
+          </motion.section>
 
-          <section>
-            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 pl-2">Compliance</h3>
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden divide-y divide-gray-50">
-              <Link href="/subcontractors" className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors active:bg-gray-100">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center"><Users className="w-4 h-4 text-amber-600" /></div>
-                  <span className="font-medium text-gray-900">Subcontractor Register (TPAR)</span>
+          <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+            <h3 className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-3 px-2">Compliance</h3>
+            <div className="bg-white/5 rounded-3xl border border-white/10 overflow-hidden divide-y divide-white/5 backdrop-blur-md">
+              <Link href="/subcontractors" className="w-full flex items-center justify-between p-5 hover:bg-white/[0.02] transition-colors group">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+                    <Users className="w-5 h-5 text-amber-400" />
+                  </div>
+                  <span className="font-semibold text-white">Subcontractor Register (TPAR)</span>
                 </div>
-                <ChevronRight className="w-5 h-5 text-gray-300" />
+                <ChevronRight className="w-5 h-5 text-muted-foreground/50 group-hover:text-white transition-colors" />
               </Link>
-              <div className="w-full flex items-center justify-between p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-[#DCFCE7] flex items-center justify-center"><ShieldCheck className="w-4 h-4 text-[#166534]" /></div>
-                  <span className="font-medium text-gray-900">GST Registration</span>
+              <div className="w-full flex items-center justify-between p-5">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                    <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                  </div>
+                  <span className="font-semibold text-white">GST Registration</span>
                 </div>
-                <span className="text-sm font-bold text-[#166534]">{me?.user?.gstRegistered ? "Registered" : "Not Registered"}</span>
+                <span className={`text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-md border ${me?.user?.gstRegistered ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-white/5 border-white/10 text-white/50"}`}>
+                  {me?.user?.gstRegistered ? "Registered" : "Not Registered"}
+                </span>
               </div>
             </div>
-          </section>
+          </motion.section>
 
-          <section>
-            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 pl-2">Data & Export</h3>
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden divide-y divide-gray-50">
-              <button onClick={() => handleExport("CSV")} className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors active:bg-gray-100">
-                <div className="flex items-center gap-3">
-                  <FileDown className="w-5 h-5 text-gray-400" />
-                  <span className="font-medium">Export all data (CSV)</span>
+          <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+            <h3 className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-3 px-2">Data & Export</h3>
+            <div className="bg-white/5 rounded-3xl border border-white/10 overflow-hidden divide-y divide-white/5 backdrop-blur-md">
+              <button onClick={() => handleExport("CSV")} className="w-full flex items-center justify-between p-5 hover:bg-white/[0.02] transition-colors">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center">
+                    <FileDown className="w-5 h-5 text-white" />
+                  </div>
+                  <span className="font-semibold text-white">Export all data (CSV)</span>
                 </div>
               </button>
-              <button onClick={() => handleExport("Logbook")} className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors active:bg-gray-100">
-                <div className="flex items-center gap-3">
-                  <BookOpen className="w-5 h-5 text-gray-400" />
-                  <span className="font-medium">Export Logbook (PDF)</span>
+              <button onClick={() => handleExport("Logbook")} className="w-full flex items-center justify-between p-5 hover:bg-white/[0.02] transition-colors">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center">
+                    <BookOpen className="w-5 h-5 text-white" />
+                  </div>
+                  <span className="font-semibold text-white">Export Logbook (PDF)</span>
                 </div>
               </button>
             </div>
-          </section>
+          </motion.section>
 
         </div>
 
-        <button 
+        <motion.button 
+          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
           onClick={handleLogout}
-          className="w-full py-4 text-red-600 font-semibold flex items-center justify-center gap-2 hover:bg-red-50 rounded-2xl transition-colors mt-8"
+          className="w-full h-14 text-red-400 font-bold flex items-center justify-center gap-2 hover:bg-red-500/10 rounded-xl border border-transparent hover:border-red-500/20 transition-colors mt-8"
         >
           <LogOut className="w-5 h-5" /> Log Out
-        </button>
+        </motion.button>
 
-        <div className="text-center mt-8 pb-8">
-          <div className="text-primary font-bold text-xl mb-1">TradeLedger</div>
-          <div className="text-xs text-gray-400">Version 1.0.0</div>
+        <div className="text-center mt-12 pb-8">
+          <div className="text-white/40 font-bold tracking-tight mb-1">TradeLedger</div>
+          <div className="text-[10px] font-medium text-white/20 uppercase tracking-widest">Version 2.0.0</div>
         </div>
       </div>
 
       {/* Edit Settings Drawer */}
       <Drawer open={editOpen} onOpenChange={setEditOpen}>
-        <DrawerContent className="bg-white h-[92vh] rounded-t-[24px]">
-          <div className="p-6 overflow-y-auto pb-28">
-            <DrawerTitle className="text-2xl font-bold mb-6">Edit Settings</DrawerTitle>
+        <DrawerContent className="bg-[#1C1C1E] border-white/10 h-[92vh] rounded-t-[32px]">
+          <div className="p-6 overflow-y-auto pb-32">
+            <DrawerTitle className="text-2xl font-bold text-white mb-8">Edit Settings</DrawerTitle>
 
-            <div className="space-y-5">
-
-              <div className="text-xs font-bold text-gray-400 uppercase tracking-wider">Your Trade</div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Trade Type</label>
-                <div className="grid grid-cols-2 gap-2.5">
+            <div className="space-y-8">
+              
+              {/* Trade Type */}
+              <div className="space-y-4">
+                <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Your Trade</div>
+                <div className="grid grid-cols-2 gap-3">
                   {TRADE_CARDS.map(card => {
                     const isSelected = formData.tradeType === card.value;
                     return (
@@ -273,143 +291,160 @@ export default function Settings() {
                         key={card.value}
                         type="button"
                         onClick={() => setFormData({ ...formData, tradeType: card.value })}
-                        className={`flex items-center gap-3 p-3 rounded-xl border-2 text-left transition-all ${
+                        className={`flex flex-col items-start gap-3 p-4 rounded-2xl border transition-all ${
                           isSelected
-                            ? "border-[#1A1A1A] bg-white shadow-sm"
-                            : "border-transparent bg-[#F7F4F1] text-gray-700 hover:border-gray-200"
+                            ? "border-primary bg-primary/10 shadow-[0_0_15px_rgba(20,184,166,0.1)]"
+                            : "border-white/10 bg-white/5 hover:bg-white/10"
                         }`}
                       >
-                        <span className="text-2xl leading-none">{card.emoji}</span>
-                        <span className="text-sm font-semibold leading-tight">{card.label}</span>
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isSelected ? "bg-primary/20" : "bg-white/10"}`}>
+                           <span className="text-lg leading-none">{card.emoji}</span>
+                        </div>
+                        <span className={`text-sm font-semibold ${isSelected ? "text-primary" : "text-white"}`}>{card.label}</span>
                       </button>
                     );
                   })}
                 </div>
               </div>
 
-              <div className="text-xs font-bold text-gray-400 uppercase tracking-wider pt-2">Business</div>
+              {/* Business Details */}
+              <div className="space-y-4">
+                <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Business</div>
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-white/80">Business Name</label>
+                    <Input
+                      value={formData.businessName}
+                      onChange={e => setFormData({ ...formData, businessName: e.target.value })}
+                      className="h-14 bg-white/5 border-white/10 rounded-xl focus-visible:ring-primary text-white"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-white/80">ABN</label>
+                    <Input
+                      value={formData.abn}
+                      onChange={e => setFormData({ ...formData, abn: e.target.value })}
+                      placeholder="XX XXX XXX XXX"
+                      className="h-14 bg-white/5 border-white/10 rounded-xl focus-visible:ring-primary text-white placeholder:text-white/20"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <label className="text-xs font-semibold text-white/80">State</label>
+                      <Select value={formData.state} onValueChange={v => setFormData({ ...formData, state: v })}>
+                        <SelectTrigger className="h-14 bg-white/5 border-white/10 rounded-xl focus:ring-primary text-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-[#1C1C1E] border-white/10 text-white">
+                          {STATES.map(s => <SelectItem key={s} value={s} className="focus:bg-white/10 focus:text-white">{s}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-semibold text-white/80">Phone</label>
+                      <Input
+                        type="tel"
+                        value={formData.phone}
+                        onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                        className="h-14 bg-white/5 border-white/10 rounded-xl focus-visible:ring-primary text-white"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-white/80">Email</label>
+                    <Input
+                      type="email"
+                      value={formData.email}
+                      onChange={e => setFormData({ ...formData, email: e.target.value })}
+                      className="h-14 bg-white/5 border-white/10 rounded-xl focus-visible:ring-primary text-white"
+                    />
+                  </div>
 
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">Business Name</label>
-                <Input
-                  value={formData.businessName}
-                  onChange={e => setFormData({ ...formData, businessName: e.target.value })}
-                  className="h-12 bg-secondary border-none"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">ABN</label>
-                <Input
-                  value={formData.abn}
-                  onChange={e => setFormData({ ...formData, abn: e.target.value })}
-                  placeholder="XX XXX XXX XXX"
-                  className="h-12 bg-secondary border-none"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">State</label>
-                <Select value={formData.state} onValueChange={v => setFormData({ ...formData, state: v })}>
-                  <SelectTrigger className="h-12 bg-secondary border-none">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {STATES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">Phone</label>
-                <Input
-                  type="tel"
-                  value={formData.phone}
-                  onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                  className="h-12 bg-secondary border-none"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">Email</label>
-                <Input
-                  type="email"
-                  value={formData.email}
-                  onChange={e => setFormData({ ...formData, email: e.target.value })}
-                  className="h-12 bg-secondary border-none"
-                />
-              </div>
+                  <div className="flex items-center justify-between p-5 bg-white/5 border border-white/10 rounded-2xl mt-4">
+                    <div>
+                      <div className="font-semibold text-white">GST Registered</div>
+                      <div className="text-xs text-muted-foreground mt-1">Required if turnover exceeds $75k</div>
+                    </div>
+                    <Switch
+                      checked={formData.gstRegistered}
+                      onCheckedChange={v => setFormData({ ...formData, gstRegistered: v })}
+                      className="data-[state=checked]:bg-primary"
+                    />
+                  </div>
 
-              <div className="flex items-center justify-between p-4 bg-secondary rounded-2xl">
-                <div>
-                  <div className="font-medium">GST Registered</div>
-                  <div className="text-sm text-gray-500">Registered for GST</div>
+                  <div className="space-y-2 pt-2">
+                    <label className="text-xs font-semibold text-white/80">Annual Turnover Band</label>
+                    <Select value={formData.annualTurnoverBand || undefined} onValueChange={v => setFormData({ ...formData, annualTurnoverBand: v })}>
+                      <SelectTrigger className="h-14 bg-white/5 border-white/10 rounded-xl focus:ring-primary text-white">
+                        <SelectValue placeholder="Select a band" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#1C1C1E] border-white/10 text-white">
+                        {TURNOVER_BANDS.map(b => <SelectItem key={b.value} value={b.value} className="focus:bg-white/10 focus:text-white">{b.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <Switch
-                  checked={formData.gstRegistered}
-                  onCheckedChange={v => setFormData({ ...formData, gstRegistered: v })}
-                />
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">Annual Turnover Band</label>
-                <p className="text-xs text-gray-500">Used for ATO benchmark comparisons.</p>
-                <Select value={formData.annualTurnoverBand || undefined} onValueChange={v => setFormData({ ...formData, annualTurnoverBand: v })}>
-                  <SelectTrigger className="h-12 bg-secondary border-none">
-                    <SelectValue placeholder="Select a band" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {TURNOVER_BANDS.map(b => <SelectItem key={b.value} value={b.value}>{b.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+              {/* Rates */}
+              <div className="space-y-4">
+                <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Rates</div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-white/80">Hourly Rate ($)</label>
+                    <Input
+                      type="number"
+                      value={formData.hourlyRate}
+                      onChange={e => setFormData({ ...formData, hourlyRate: e.target.value })}
+                      className="h-14 bg-white/5 border-white/10 rounded-xl focus-visible:ring-primary text-white font-medium"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-white/80">Default Markup (%)</label>
+                    <Input
+                      type="number"
+                      value={formData.defaultMarkupPercent}
+                      onChange={e => setFormData({ ...formData, defaultMarkupPercent: e.target.value })}
+                      className="h-14 bg-white/5 border-white/10 rounded-xl focus-visible:ring-primary text-white font-medium"
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div className="text-xs font-bold text-gray-400 uppercase tracking-wider pt-4">Rates</div>
-
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">Default Hourly Rate ($)</label>
-                <Input
-                  type="number"
-                  value={formData.hourlyRate}
-                  onChange={e => setFormData({ ...formData, hourlyRate: e.target.value })}
-                  className="h-12 bg-secondary border-none"
-                />
+              {/* Profit First */}
+              <div className="space-y-4">
+                <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Profit First Targets</div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-red-400">Tax Set-aside (%)</label>
+                    <Input
+                      type="number"
+                      value={formData.profitFirstTaxPercent}
+                      onChange={e => setFormData({ ...formData, profitFirstTaxPercent: e.target.value })}
+                      min="0" max="50"
+                      className="h-14 bg-white/5 border-red-500/20 rounded-xl focus-visible:ring-red-400 text-white font-medium"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-amber-400">Expenses Float (%)</label>
+                    <Input
+                      type="number"
+                      value={formData.profitFirstExpensesPercent}
+                      onChange={e => setFormData({ ...formData, profitFirstExpensesPercent: e.target.value })}
+                      min="0" max="50"
+                      className="h-14 bg-white/5 border-amber-500/20 rounded-xl focus-visible:ring-amber-400 text-white font-medium"
+                    />
+                  </div>
+                </div>
               </div>
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">Default Material Markup (%)</label>
-                <Input
-                  type="number"
-                  value={formData.defaultMarkupPercent}
-                  onChange={e => setFormData({ ...formData, defaultMarkupPercent: e.target.value })}
-                  className="h-12 bg-secondary border-none"
-                />
-              </div>
-
-              <div className="text-xs font-bold text-gray-400 uppercase tracking-wider pt-4">Profit First</div>
-
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">Tax Set-aside (%)</label>
-                <Input
-                  type="number"
-                  value={formData.profitFirstTaxPercent}
-                  onChange={e => setFormData({ ...formData, profitFirstTaxPercent: e.target.value })}
-                  min="0" max="50"
-                  className="h-12 bg-secondary border-none"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">Expenses Float (%)</label>
-                <Input
-                  type="number"
-                  value={formData.profitFirstExpensesPercent}
-                  onChange={e => setFormData({ ...formData, profitFirstExpensesPercent: e.target.value })}
-                  min="0" max="50"
-                  className="h-12 bg-secondary border-none"
-                />
-              </div>
+              
             </div>
           </div>
-          <div className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100">
+          <div className="absolute bottom-0 left-0 right-0 p-5 bg-[#1C1C1E]/80 backdrop-blur-xl border-t border-white/10">
             <Button
               onClick={handleSave}
               disabled={updateSettings.isPending}
-              className="w-full h-14 rounded-full text-lg font-semibold"
+              className="w-full h-14 rounded-xl text-lg font-bold bg-primary text-black hover:bg-primary/90 shadow-[0_0_20px_rgba(20,184,166,0.3)]"
             >
               {updateSettings.isPending ? "Saving..." : "Save Changes"}
             </Button>
