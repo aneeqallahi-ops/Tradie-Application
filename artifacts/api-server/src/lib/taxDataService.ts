@@ -168,6 +168,21 @@ export function getDeductibleCategories(tradeType: string | null | undefined): D
   return out;
 }
 
+// User-profile turnover bands (UI/onboarding) → representative revenue used to
+// look up an industry-specific benchmark band. Keeps the user-facing taxonomy
+// stable while letting each industry define its own band cut-points.
+const USER_BAND_MIDPOINTS: Record<string, number> = {
+  under_50k: 25_000,
+  "50k_150k": 100_000,
+  "150k_600k": 375_000,
+  over_600k: 900_000,
+};
+
+export function userTurnoverBandToRevenue(userBand: string | null | undefined): number | null {
+  if (!userBand) return null;
+  return USER_BAND_MIDPOINTS[userBand] ?? null;
+}
+
 export function getBenchmarks(tradeType: string | null | undefined, turnoverBand?: string | null): { industry: string | null; band: BenchmarkBand | null; bands: BenchmarkBand[]; label: string | null } {
   const b = benchmarks();
   const trade = (tradeType ?? "other").toLowerCase();
@@ -178,7 +193,14 @@ export function getBenchmarks(tradeType: string | null | undefined, turnoverBand
   const industry = b.industries[industryKey];
   let band: BenchmarkBand | null = null;
   if (turnoverBand) {
+    // 1) Exact key match (industry band shares the user-band key).
     band = industry.bands.find(x => x.key === turnoverBand) ?? null;
+    // 2) Otherwise normalize the user band to a representative revenue and
+    //    pick the matching industry band by min/max range.
+    if (!band) {
+      const rev = userTurnoverBandToRevenue(turnoverBand);
+      if (rev !== null) band = pickBenchmarkBandForRevenue(industry, rev);
+    }
   }
   return { industry: industryKey, band, bands: industry.bands, label: industry.label };
 }
