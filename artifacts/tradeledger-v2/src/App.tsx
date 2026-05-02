@@ -64,7 +64,7 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
             onClick={() => login()} 
             className="w-full h-16 bg-primary text-background rounded-full font-bold text-lg hover:bg-primary/90 hover:scale-[0.98] transition-all shadow-[0_0_20px_rgba(26,219,165,0.2)]"
           >
-            Access Dashboard
+            Log In
           </button>
         </motion.div>
       </div>
