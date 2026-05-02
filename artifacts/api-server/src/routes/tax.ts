@@ -149,14 +149,32 @@ router.get("/tax/position", requireAuth, async (req: Request, res: Response) => 
 // Helpers for benchmark ratio computation
 // ---------------------------------------------------------------------------
 
-// Maps expense categories in the app to ATO benchmark ratio keys.
+// Maps ALL expense category keys used in the app to ATO benchmark ratio buckets.
+// Trade-specific material keys (electrical_materials, plumbing_materials, etc.) all
+// map to costOfSales; vehicle sub-categories map to motorVehicle; subcontractor to labour.
+// Categories not listed here (protective_clothing, licences_subscriptions, phone_internet,
+// other_business) still count toward totalExpenses but have no ATO sub-ratio.
 const CATEGORY_TO_RATIO: Record<string, string> = {
+  // Materials / cost of sales — generic + all trade-specific keys
   materials: "costOfSales",
   tools_equipment: "costOfSales",
+  equipment_hire: "costOfSales",
+  electrical_materials: "costOfSales",
+  plumbing_materials: "costOfSales",
+  timber_materials: "costOfSales",
+  building_materials: "costOfSales",
+  paint_materials: "costOfSales",
+  hvac_materials: "costOfSales",
+  tile_materials: "costOfSales",
+  landscaping_materials: "costOfSales",
+  concrete_materials: "costOfSales",
+  // Labour / subcontractors
   subcontractor: "labour",
   subcontractor_payment: "labour",
+  // Motor vehicle — both generic key and UI sub-category keys
   vehicle: "motorVehicle",
-  rent: "rent",
+  vehicle_fuel: "motorVehicle",
+  vehicle_other: "motorVehicle",
 };
 
 function computeBenchmarkRatio(

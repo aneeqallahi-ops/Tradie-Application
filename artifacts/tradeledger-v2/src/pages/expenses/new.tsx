@@ -232,8 +232,29 @@ export default function NewExpense() {
 
         {/* Contextual deductible prompt for selected category */}
         {formData.category && (() => {
+          // App expense categories use trade-specific keys (vehicle_fuel, electrical_materials etc.)
+          // while deductible prompt keys use generic ATO keys (vehicle, materials etc.).
+          // This map normalises expense keys → prompt keys so prompts fire correctly.
+          const EXPENSE_TO_PROMPT_KEY: Record<string, string> = {
+            vehicle_fuel: "vehicle",
+            vehicle_other: "vehicle",
+            electrical_materials: "materials",
+            plumbing_materials: "materials",
+            timber_materials: "materials",
+            building_materials: "materials",
+            paint_materials: "materials",
+            hvac_materials: "materials",
+            tile_materials: "materials",
+            landscaping_materials: "materials",
+            concrete_materials: "materials",
+            equipment_hire: "materials",
+            protective_clothing: "ppe",
+            licences_subscriptions: "licences",
+            subcontractor_payment: "subcontractor",
+          };
+          const promptKey = EXPENSE_TO_PROMPT_KEY[formData.category] ?? formData.category;
           const matchingPrompt = prompts?.prompts?.find(
-            p => p.key === formData.category && !p.dismissed
+            p => p.key === promptKey && !p.dismissed
           );
           if (!matchingPrompt) return null;
           return (
