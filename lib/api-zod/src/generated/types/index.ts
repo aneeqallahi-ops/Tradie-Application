@@ -6,9 +6,13 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./advisoryAdminMeResponse";
 export * from "./advisoryRequest";
 export * from "./advisoryRequestCreatedResponse";
+export * from "./advisoryRequestOwner";
 export * from "./advisoryRequestsResponse";
+export * from "./advisoryRequestWithOwner";
+export * from "./allAdvisoryRequestsResponse";
 export * from "./authUser";
 export * from "./basPosition";
 export * from "./client";
@@ -61,6 +65,8 @@ export * from "./taxStrategy";
 export * from "./tparSummary";
 export * from "./tradieUser";
 export * from "./tradieUserResponse";
+export * from "./updateAdvisoryRequestStatusInput";
+export * from "./updateAdvisoryRequestStatusInputStatus";
 export * from "./updateJobStatusBody";
 export * from "./updateSettingsBody";
 export * from "./uploadReceiptBody";

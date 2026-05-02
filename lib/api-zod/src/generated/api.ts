@@ -1580,6 +1580,69 @@ export const CreateAdvisoryRequestBody = zod.object({
 });
 
 /**
+ * @summary Check whether the current user is an advisory admin
+ */
+export const GetAdvisoryAdminMeResponse = zod.object({
+  isAdmin: zod.boolean(),
+});
+
+/**
+ * @summary List every advisory request across all users (admin only)
+ */
+export const GetAllAdvisoryRequestsResponse = zod.object({
+  requests: zod.array(
+    zod
+      .object({
+        id: zod.number(),
+        userId: zod.number().nullish(),
+        serviceType: zod.string(),
+        currentIncome: zod.string().nullish(),
+        helpNeeded: zod.string().nullish(),
+        urgency: zod.string().nullish(),
+        status: zod.string().nullish(),
+        sourceModule: zod.string().nullish(),
+        createdAt: zod.string().nullish(),
+      })
+      .and(
+        zod.object({
+          owner: zod
+            .object({
+              id: zod.number().nullish(),
+              businessName: zod.string().nullish(),
+              email: zod.string().nullish(),
+            })
+            .nullish(),
+        }),
+      ),
+  ),
+});
+
+/**
+ * @summary Update the status of an advisory request (admin only)
+ */
+export const UpdateAdvisoryRequestStatusParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateAdvisoryRequestStatusBody = zod.object({
+  status: zod.enum(["pending", "in_progress", "completed"]),
+});
+
+export const UpdateAdvisoryRequestStatusResponse = zod.object({
+  request: zod.object({
+    id: zod.number(),
+    userId: zod.number().nullish(),
+    serviceType: zod.string(),
+    currentIncome: zod.string().nullish(),
+    helpNeeded: zod.string().nullish(),
+    urgency: zod.string().nullish(),
+    status: zod.string().nullish(),
+    sourceModule: zod.string().nullish(),
+    createdAt: zod.string().nullish(),
+  }),
+});
+
+/**
  * @summary List notifications
  */
 export const GetNotificationsResponseItem = zod.object({

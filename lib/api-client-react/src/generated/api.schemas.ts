@@ -552,6 +552,37 @@ export interface CreateAdvisoryRequestInput {
   sourceModule?: CreateAdvisoryRequestInputSourceModule;
 }
 
+export type UpdateAdvisoryRequestStatusInputStatus =
+  (typeof UpdateAdvisoryRequestStatusInputStatus)[keyof typeof UpdateAdvisoryRequestStatusInputStatus];
+
+export const UpdateAdvisoryRequestStatusInputStatus = {
+  pending: "pending",
+  in_progress: "in_progress",
+  completed: "completed",
+} as const;
+
+export interface UpdateAdvisoryRequestStatusInput {
+  status: UpdateAdvisoryRequestStatusInputStatus;
+}
+
+export interface AdvisoryAdminMeResponse {
+  isAdmin: boolean;
+}
+
+export interface AdvisoryRequestOwner {
+  id?: number | null;
+  businessName?: string | null;
+  email?: string | null;
+}
+
+export type AdvisoryRequestWithOwner = AdvisoryRequest & {
+  owner?: AdvisoryRequestOwner | null;
+};
+
+export interface AllAdvisoryRequestsResponse {
+  requests: AdvisoryRequestWithOwner[];
+}
+
 export interface AdvisoryRequestsResponse {
   requests: AdvisoryRequest[];
 }

@@ -81,3 +81,8 @@ externalPort = 3001
 deploymentTarget = "autoscale"
 run = ["pnpm", "run", "start"]
 build = ["pnpm", "run", "build"]
+
+[userenv]
+
+[userenv.shared]
+ADVISORY_ADMIN_USER_IDS = "advisor-admin-test-sub"

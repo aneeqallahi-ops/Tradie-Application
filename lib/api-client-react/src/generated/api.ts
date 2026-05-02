@@ -17,8 +17,10 @@ import type {
 } from "@tanstack/react-query";
 
 import type {
+  AdvisoryAdminMeResponse,
   AdvisoryRequestCreatedResponse,
   AdvisoryRequestsResponse,
+  AllAdvisoryRequestsResponse,
   Client,
   ClientDetail,
   CreateAdvisoryRequestInput,
@@ -60,6 +62,7 @@ import type {
   TparSummary,
   TradieUser,
   TradieUserResponse,
+  UpdateAdvisoryRequestStatusInput,
   UpdateJobStatusBody,
   UpdateSettingsBody,
   UploadReceiptBody,
@@ -4271,6 +4274,251 @@ export const useCreateAdvisoryRequest = <
   TContext
 > => {
   return useMutation(getCreateAdvisoryRequestMutationOptions(options));
+};
+
+/**
+ * @summary Check whether the current user is an advisory admin
+ */
+export const getGetAdvisoryAdminMeUrl = () => {
+  return `/api/advisory/admin/me`;
+};
+
+export const getAdvisoryAdminMe = async (
+  options?: RequestInit,
+): Promise<AdvisoryAdminMeResponse> => {
+  return customFetch<AdvisoryAdminMeResponse>(getGetAdvisoryAdminMeUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetAdvisoryAdminMeQueryKey = () => {
+  return [`/api/advisory/admin/me`] as const;
+};
+
+export const getGetAdvisoryAdminMeQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAdvisoryAdminMe>>,
+  TError = ErrorType<void>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdvisoryAdminMe>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetAdvisoryAdminMeQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getAdvisoryAdminMe>>
+  > = ({ signal }) => getAdvisoryAdminMe({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAdvisoryAdminMe>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAdvisoryAdminMeQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAdvisoryAdminMe>>
+>;
+export type GetAdvisoryAdminMeQueryError = ErrorType<void>;
+
+/**
+ * @summary Check whether the current user is an advisory admin
+ */
+
+export function useGetAdvisoryAdminMe<
+  TData = Awaited<ReturnType<typeof getAdvisoryAdminMe>>,
+  TError = ErrorType<void>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdvisoryAdminMe>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAdvisoryAdminMeQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary List every advisory request across all users (admin only)
+ */
+export const getGetAllAdvisoryRequestsUrl = () => {
+  return `/api/advisory/admin/requests`;
+};
+
+export const getAllAdvisoryRequests = async (
+  options?: RequestInit,
+): Promise<AllAdvisoryRequestsResponse> => {
+  return customFetch<AllAdvisoryRequestsResponse>(
+    getGetAllAdvisoryRequestsUrl(),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetAllAdvisoryRequestsQueryKey = () => {
+  return [`/api/advisory/admin/requests`] as const;
+};
+
+export const getGetAllAdvisoryRequestsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAllAdvisoryRequests>>,
+  TError = ErrorType<void>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAllAdvisoryRequests>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetAllAdvisoryRequestsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getAllAdvisoryRequests>>
+  > = ({ signal }) => getAllAdvisoryRequests({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAllAdvisoryRequests>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAllAdvisoryRequestsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAllAdvisoryRequests>>
+>;
+export type GetAllAdvisoryRequestsQueryError = ErrorType<void>;
+
+/**
+ * @summary List every advisory request across all users (admin only)
+ */
+
+export function useGetAllAdvisoryRequests<
+  TData = Awaited<ReturnType<typeof getAllAdvisoryRequests>>,
+  TError = ErrorType<void>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAllAdvisoryRequests>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAllAdvisoryRequestsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Update the status of an advisory request (admin only)
+ */
+export const getUpdateAdvisoryRequestStatusUrl = (id: number) => {
+  return `/api/advisory/requests/${id}/status`;
+};
+
+export const updateAdvisoryRequestStatus = async (
+  id: number,
+  updateAdvisoryRequestStatusInput: UpdateAdvisoryRequestStatusInput,
+  options?: RequestInit,
+): Promise<AdvisoryRequestCreatedResponse> => {
+  return customFetch<AdvisoryRequestCreatedResponse>(
+    getUpdateAdvisoryRequestStatusUrl(id),
+    {
+      ...options,
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(updateAdvisoryRequestStatusInput),
+    },
+  );
+};
+
+export const getUpdateAdvisoryRequestStatusMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateAdvisoryRequestStatus>>,
+    TError,
+    { id: number; data: BodyType<UpdateAdvisoryRequestStatusInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateAdvisoryRequestStatus>>,
+  TError,
+  { id: number; data: BodyType<UpdateAdvisoryRequestStatusInput> },
+  TContext
+> => {
+  const mutationKey = ["updateAdvisoryRequestStatus"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateAdvisoryRequestStatus>>,
+    { id: number; data: BodyType<UpdateAdvisoryRequestStatusInput> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateAdvisoryRequestStatus(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateAdvisoryRequestStatusMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateAdvisoryRequestStatus>>
+>;
+export type UpdateAdvisoryRequestStatusMutationBody =
+  BodyType<UpdateAdvisoryRequestStatusInput>;
+export type UpdateAdvisoryRequestStatusMutationError = ErrorType<void>;
+
+/**
+ * @summary Update the status of an advisory request (admin only)
+ */
+export const useUpdateAdvisoryRequestStatus = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateAdvisoryRequestStatus>>,
+    TError,
+    { id: number; data: BodyType<UpdateAdvisoryRequestStatusInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateAdvisoryRequestStatus>>,
+  TError,
+  { id: number; data: BodyType<UpdateAdvisoryRequestStatusInput> },
+  TContext
+> => {
+  return useMutation(getUpdateAdvisoryRequestStatusMutationOptions(options));
 };
 
 /**

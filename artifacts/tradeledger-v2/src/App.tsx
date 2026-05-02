@@ -24,6 +24,7 @@ import Notifications from "./pages/notifications";
 import Onboarding from "./pages/onboarding";
 import TaxPage from "./pages/tax";
 import AdvisoryPage from "./pages/advisory";
+import AdvisoryAdminPage from "./pages/advisory/admin";
 import NotFound from "./pages/not-found";
 
 const queryClient = new QueryClient();
@@ -81,6 +82,7 @@ function Router() {
       <Route path="/tax" component={() => <ProtectedRoute component={TaxPage} />} />
       <Route path="/advisory" component={() => <ProtectedRoute component={AdvisoryPage} />} />
       <Route path="/advisory/new" component={() => <ProtectedRoute component={AdvisoryPage} />} />
+      <Route path="/advisory/admin" component={() => <ProtectedRoute component={AdvisoryAdminPage} />} />
       <Route component={NotFound} />
     </Switch>
   );
