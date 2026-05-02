@@ -149,7 +149,7 @@ export function IntakeForm({ open, onClose, serviceType, prefillIncome, prefillI
                   data-testid="advisory-income-input"
                 />
               </div>
-              {PREFILL_LABELS[prefillIncomeSource] && (
+              {!incomeTouched && PREFILL_LABELS[prefillIncomeSource] && (
                 <p className="text-[10px] text-gray-400 mt-1 px-1" data-testid="advisory-income-prefill-label">
                   {PREFILL_LABELS[prefillIncomeSource]}
                 </p>
