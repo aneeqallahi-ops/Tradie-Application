@@ -650,7 +650,8 @@ router.get("/tax/strategies", requireAuth, async (req: Request, res: Response) =
       projectedAnnualIncome: taxPosition.projectedAnnualIncome,
       trafficLight: taxPosition.trafficLight,
       hasLogbook: !!tradieUser.logbookStartDate,
-      gstRegistered: tradieUser.gstRegistered ?? true,
+      // Default false (not registered) when unknown — conservative: ensures GST threshold warning shows
+      gstRegistered: tradieUser.gstRegistered ?? false,
       toolsExpensesYtd,
       prepayableExpensesYtd,
       homeOfficeExpensesYtd,
@@ -662,8 +663,8 @@ router.get("/tax/strategies", requireAuth, async (req: Request, res: Response) =
       .filter(s => !s.isRisk)
       .reduce((sum, s) => sum + s.estimatedSaving, 0);
 
-    // Compliance: log strategy calculation
-    await db.insert(taxAuditLogTable).values({
+    // Compliance: log strategy calculation (best-effort — must NOT block response)
+    db.insert(taxAuditLogTable).values({
       userId,
       calculationType: "tax_strategies",
       inputValues: JSON.stringify({
@@ -674,6 +675,8 @@ router.get("/tax/strategies", requireAuth, async (req: Request, res: Response) =
       }),
       ruleApplied: `FY${getFinancialYear()} strategy engine — ${strategies.length} strategies`,
       result: JSON.stringify(strategies.map(s => ({ id: s.id, estimatedSaving: s.estimatedSaving }))),
+    }).catch(err => {
+      req.log.warn({ err }, "Failed to write tax_audit_log (non-blocking)");
     });
 
     res.json({

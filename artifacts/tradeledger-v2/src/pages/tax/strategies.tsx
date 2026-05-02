@@ -106,14 +106,12 @@ function StrategyCard({
             </a>
           </div>
 
-          {talkToCpa && (
-            <Link href={advisoryUrl}>
-              <button className="w-full flex items-center justify-center gap-2 bg-primary text-white text-sm font-semibold py-3 rounded-xl mt-1">
-                <MessageSquare className="w-4 h-4" />
-                Talk to your CPA
-              </button>
-            </Link>
-          )}
+          <Link href={advisoryUrl}>
+            <button className="w-full flex items-center justify-center gap-2 bg-primary text-white text-sm font-semibold py-3 rounded-xl mt-1">
+              <MessageSquare className="w-4 h-4" />
+              Talk to your CPA
+            </button>
+          </Link>
         </div>
       )}
     </div>
