@@ -86,3 +86,7 @@ build = ["pnpm", "run", "build"]
 
 [userenv.shared]
 ADVISORY_ADMIN_USER_IDS = "advisor-admin-test-sub"
+
+[postMerge]
+path = "scripts/post-merge.sh"
+timeoutMs = 120000

@@ -1,9 +1,32 @@
 import React, { useState, useEffect } from "react";
 import { Layout, Header } from "@/components/layout";
-import { useGetAdvisoryRequests, useGetTaxPosition } from "@workspace/api-client-react";
-import { IntakeForm, type ServiceType } from "./intake-form";
+import { useGetAdvisoryRequests, useGetTaxPosition, useGetMe } from "@workspace/api-client-react";
+import { IntakeForm, type ServiceType, type IncomePrefillSource } from "./intake-form";
 import { useSearch } from "wouter";
 import { Calculator, Home, TrendingUp, Briefcase, Clock, CheckCircle, Loader } from "lucide-react";
+
+const TURNOVER_BAND_MIDPOINTS: Record<string, number> = {
+  under_50k: 25000,
+  "50k_150k": 100000,
+  "150k_600k": 375000,
+  over_600k: 750000,
+};
+
+function deriveIncomePrefill(
+  revenueYtd: number | string | null | undefined,
+  daysIntoFy: number | null | undefined,
+  annualTurnoverBand: string | null | undefined,
+): { income: number | undefined; source: IncomePrefillSource } {
+  const revenue = revenueYtd != null ? Number(revenueYtd) : NaN;
+  const days = daysIntoFy ?? 0;
+  if (Number.isFinite(revenue) && revenue > 0 && days > 60) {
+    return { income: Math.round(revenue * (365 / days)), source: "ytd" };
+  }
+  if (annualTurnoverBand && TURNOVER_BAND_MIDPOINTS[annualTurnoverBand] != null) {
+    return { income: TURNOVER_BAND_MIDPOINTS[annualTurnoverBand], source: "settings" };
+  }
+  return { income: undefined, source: "none" };
+}
 
 interface ServiceCard {
   id: ServiceType;
@@ -70,14 +93,17 @@ export default function AdvisoryPage() {
 
   const { data: taxPosition } = useGetTaxPosition();
   const { data: requestsData, isLoading: requestsLoading } = useGetAdvisoryRequests();
+  const { data: me } = useGetMe();
 
   const [activeService, setActiveService] = useState<ServiceType | null>(null);
   const [prefillHelp, setPrefillHelp] = useState<string>("");
   const [autoOpened, setAutoOpened] = useState(false);
 
-  const annualIncome = taxPosition?.revenueYtd
-    ? Math.round(Number(taxPosition.revenueYtd) * (365 / Math.max(taxPosition.daysIntoFy ?? 180, 1)))
-    : undefined;
+  const { income: annualIncome, source: incomeSource } = deriveIncomePrefill(
+    taxPosition?.revenueYtd,
+    taxPosition?.daysIntoFy,
+    me?.user?.annualTurnoverBand,
+  );
 
   useEffect(() => {
     if (strategyParam && !autoOpened) {
@@ -185,6 +211,7 @@ export default function AdvisoryPage() {
           onClose={() => { setActiveService(null); setPrefillHelp(""); }}
           serviceType={activeService}
           prefillIncome={annualIncome}
+          prefillIncomeSource={incomeSource}
           prefillHelp={prefillHelp}
           sourceModule={sourceModule}
         />

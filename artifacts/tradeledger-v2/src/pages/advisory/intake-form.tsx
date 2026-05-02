@@ -20,16 +20,25 @@ const URGENCY_OPTIONS = [
   { value: "no_rush", label: "No rush" },
 ];
 
+export type IncomePrefillSource = "ytd" | "settings" | "none";
+
 interface IntakeFormProps {
   open: boolean;
   onClose: () => void;
   serviceType: ServiceType;
   prefillIncome?: number;
+  prefillIncomeSource?: IncomePrefillSource;
   prefillHelp?: string;
   sourceModule?: SourceModule;
 }
 
-export function IntakeForm({ open, onClose, serviceType, prefillIncome, prefillHelp, sourceModule = "manual" }: IntakeFormProps) {
+const PREFILL_LABELS: Record<IncomePrefillSource, string | null> = {
+  ytd: "Estimated from your YTD revenue",
+  settings: "From your settings",
+  none: null,
+};
+
+export function IntakeForm({ open, onClose, serviceType, prefillIncome, prefillIncomeSource = "none", prefillHelp, sourceModule = "manual" }: IntakeFormProps) {
   const queryClient = useQueryClient();
   const createRequest = useCreateAdvisoryRequest();
 
@@ -133,8 +142,14 @@ export function IntakeForm({ open, onClose, serviceType, prefillIncome, prefillH
                   value={income}
                   onChange={e => setIncome(e.target.value)}
                   className="w-full bg-secondary/60 rounded-xl pl-8 pr-4 py-3 text-sm text-primary font-medium focus:outline-none focus:ring-2 focus:ring-accent/30"
+                  data-testid="advisory-income-input"
                 />
               </div>
+              {PREFILL_LABELS[prefillIncomeSource] && (
+                <p className="text-[10px] text-gray-400 mt-1 px-1" data-testid="advisory-income-prefill-label">
+                  {PREFILL_LABELS[prefillIncomeSource]}
+                </p>
+              )}
             </div>
 
             <div className="space-y-1.5">
