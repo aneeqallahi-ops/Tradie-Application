@@ -189,12 +189,15 @@ router.get("/logout", async (req: Request, res: Response) => {
   const config = await getOidcConfig();
   const origin = getOrigin(req);
 
+  const safeReturnTo = getSafeReturnTo(req.query.returnTo);
+  const postLogoutRedirectUri = origin.replace(/\/$/, "") + safeReturnTo;
+
   const sid = getSessionId(req);
   await clearSession(res, sid);
 
   const endSessionUrl = oidc.buildEndSessionUrl(config, {
     client_id: process.env.REPL_ID!,
-    post_logout_redirect_uri: origin,
+    post_logout_redirect_uri: postLogoutRedirectUri,
   });
 
   res.redirect(endSessionUrl.href);

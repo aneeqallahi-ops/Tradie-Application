@@ -54,7 +54,6 @@ export default function Settings() {
 
   const handleLogout = async () => {
     await logout();
-    window.location.href = "/";
   };
 
   const handleExport = async (type: string) => {
