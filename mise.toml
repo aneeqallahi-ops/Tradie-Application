@@ -1,0 +1,8 @@
+# Pins the toolchain for the deploy builder (Railway/Railpack installs node &
+# pnpm via mise). pnpm 10 is required because pnpm-workspace.yaml uses the
+# `overrides` and `catalogs` features, which only pnpm 10 records in the
+# lockfile the same way — installing with pnpm 9 fails the frozen-lockfile
+# check (ERR_PNPM_LOCKFILE_CONFIG_MISMATCH).
+[tools]
+node = "24"
+pnpm = "10"
