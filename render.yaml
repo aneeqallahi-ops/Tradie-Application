@@ -1,0 +1,22 @@
+# Render Blueprint — single web service + managed Postgres.
+# Create a new Blueprint from this repo; Render wires DATABASE_URL automatically.
+services:
+  - type: web
+    name: tradeledger
+    runtime: node
+    plan: starter
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm run build
+    startCommand: pnpm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: AUTH_DISABLED
+        value: "true"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: tradeledger-db
+          property: connectionString
+
+databases:
+  - name: tradeledger-db
+    plan: starter

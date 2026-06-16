@@ -18,6 +18,7 @@ import {
   ISSUER_URL,
   type SessionData,
 } from "../lib/auth";
+import { AUTH_DISABLED } from "../middlewares/authMiddleware";
 
 const OIDC_COOKIE_TTL = 10 * 60 * 1000;
 
@@ -89,6 +90,10 @@ router.get("/auth/user", (req: Request, res: Response) => {
 });
 
 router.get("/login", async (req: Request, res: Response) => {
+  if (AUTH_DISABLED) {
+    res.redirect(getSafeReturnTo(req.query.returnTo));
+    return;
+  }
   const config = await getOidcConfig();
   const callbackUrl = `${getOrigin(req)}/api/callback`;
 
@@ -186,6 +191,10 @@ router.get("/callback", async (req: Request, res: Response) => {
 });
 
 router.get("/logout", async (req: Request, res: Response) => {
+  if (AUTH_DISABLED) {
+    res.redirect(getSafeReturnTo(req.query.returnTo));
+    return;
+  }
   const config = await getOidcConfig();
   const origin = getOrigin(req);
 

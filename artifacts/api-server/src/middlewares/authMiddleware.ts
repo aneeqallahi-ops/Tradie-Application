@@ -26,6 +26,20 @@ declare global {
   }
 }
 
+// When AUTH_DISABLED=true the OIDC flow below is bypassed entirely and every
+// request is treated as this single fixed user. Used for self-hosting the app
+// without an identity provider (single-tenant / no-login mode). The full OIDC
+// path is left intact and is restored simply by unsetting the flag.
+export const AUTH_DISABLED = process.env.AUTH_DISABLED === "true";
+
+const LOCAL_USER: AuthUser = {
+  id: process.env.LOCAL_USER_ID ?? "local-user",
+  email: process.env.LOCAL_USER_EMAIL ?? "owner@example.com",
+  firstName: process.env.LOCAL_USER_FIRST_NAME ?? "Local",
+  lastName: process.env.LOCAL_USER_LAST_NAME ?? "User",
+  profileImageUrl: null,
+};
+
 async function refreshIfExpired(
   sid: string,
   session: SessionData,
@@ -61,6 +75,12 @@ export async function authMiddleware(
   req.isAuthenticated = function (this: Request) {
     return this.user != null;
   } as Request["isAuthenticated"];
+
+  if (AUTH_DISABLED) {
+    req.user = LOCAL_USER;
+    next();
+    return;
+  }
 
   const sid = getSessionId(req);
   if (!sid) {
