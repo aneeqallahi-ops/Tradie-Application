@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Personal Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .grid {
+      max-width: 960px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    .card {
+      background: #1a1d27;
+      border: 1px solid #2d3148;
+      border-radius: 16px;
+      padding: 1.75rem;
+    }
+
+    .card--wide { grid-column: 1 / -1; }
+
+    /* Greeting */
+    .greeting h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #818cf8, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+    }
+
+    .greeting .datetime {
+      font-size: 1rem;
+      color: #94a3b8;
+      letter-spacing: 0.02em;
+    }
+
+    .greeting .time {
+      font-size: 2.5rem;
+      font-weight: 300;
+      color: #c7d2fe;
+      margin-top: 0.25rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .greeting .date-line {
+      color: #64748b;
+      font-size: 0.9rem;
+      margin-top: 0.25rem;
+    }
+
+    /* Quote */
+    .quote-card h2 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #64748b;
+      margin-bottom: 1rem;
+    }
+
+    .quote-text {
+      font-size: 1.05rem;
+      line-height: 1.7;
+      color: #cbd5e1;
+      font-style: italic;
+      min-height: 3.5rem;
+    }
+
+    .quote-author {
+      margin-top: 0.75rem;
+      font-size: 0.85rem;
+      color: #818cf8;
+      font-style: normal;
+    }
+
+    .btn {
+      margin-top: 1.25rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 1.1rem;
+      border-radius: 8px;
+      border: 1px solid #3730a3;
+      background: #1e1b4b;
+      color: #a5b4fc;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .btn:hover { background: #2d2a6e; border-color: #6366f1; }
+
+    /* Todo */
+    .todo-card { grid-column: 1 / -1; }
+
+    .todo-card h2 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #64748b;
+      margin-bottom: 1.25rem;
+    }
+
+    .todo-input-row {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .todo-input {
+      flex: 1;
+      background: #0f1117;
+      border: 1px solid #2d3148;
+      border-radius: 8px;
+      padding: 0.6rem 1rem;
+      color: #e2e8f0;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .todo-input:focus { border-color: #6366f1; }
+    .todo-input::placeholder { color: #475569; }
+
+    .btn-add {
+      padding: 0.6rem 1.2rem;
+      background: #4f46e5;
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn-add:hover { background: #6366f1; }
+
+    .todo-list { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; }
+
+    .todo-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      background: #0f1117;
+      border: 1px solid #2d3148;
+      border-radius: 10px;
+      transition: border-color 0.15s;
+    }
+
+    .todo-item:hover { border-color: #3d4268; }
+
+    .todo-item input[type="checkbox"] {
+      width: 1.1rem;
+      height: 1.1rem;
+      accent-color: #6366f1;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .todo-label {
+      flex: 1;
+      font-size: 0.95rem;
+      color: #cbd5e1;
+      transition: color 0.15s;
+    }
+
+    .todo-item.done .todo-label {
+      text-decoration: line-through;
+      color: #475569;
+    }
+
+    .todo-delete {
+      background: none;
+      border: none;
+      color: #475569;
+      cursor: pointer;
+      font-size: 1.1rem;
+      line-height: 1;
+      padding: 0.1rem 0.3rem;
+      border-radius: 4px;
+      transition: color 0.15s, background 0.15s;
+    }
+
+    .todo-delete:hover { color: #f87171; background: #1f1212; }
+
+    .empty-state {
+      text-align: center;
+      color: #334155;
+      font-size: 0.9rem;
+      padding: 1.5rem 0;
+    }
+
+    @media (max-width: 600px) {
+      .grid { grid-template-columns: 1fr; }
+      .card--wide, .todo-card { grid-column: 1; }
+      .greeting h1 { font-size: 1.5rem; }
+      .greeting .time { font-size: 2rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="grid">
+    <!-- Greeting -->
+    <div class="card card--wide greeting">
+      <h1 id="greeting-text">Hello!</h1>
+      <div class="time" id="clock"></div>
+      <div class="date-line" id="date-line"></div>
+    </div>
+
+    <!-- Quote -->
+    <div class="card quote-card">
+      <h2>Motivation</h2>
+      <p class="quote-text" id="quote-text"></p>
+      <p class="quote-author" id="quote-author"></p>
+      <button class="btn" onclick="nextQuote()">&#8635; New quote</button>
+    </div>
+
+    <!-- Todo -->
+    <div class="card todo-card">
+      <h2>To-Do List</h2>
+      <div class="todo-input-row">
+        <input
+          class="todo-input"
+          id="todo-input"
+          type="text"
+          placeholder="Add a new task…"
+          onkeydown="if(event.key==='Enter') addTodo()"
+        />
+        <button class="btn-add" onclick="addTodo()">+ Add</button>
+      </div>
+      <ul class="todo-list" id="todo-list"></ul>
+      <p class="empty-state" id="empty-state">No tasks yet — add one above.</p>
+    </div>
+  </div>
+
+  <script>
+    // ── Clock ─────────────────────────────────────────────────────────────────
+    function updateClock() {
+      const now = new Date();
+      const h = String(now.getHours()).padStart(2, '0');
+      const m = String(now.getMinutes()).padStart(2, '0');
+      const s = String(now.getSeconds()).padStart(2, '0');
+      document.getElementById('clock').textContent = `${h}:${m}:${s}`;
+
+      const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+      const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      document.getElementById('date-line').textContent =
+        `${days[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
+
+      const hour = now.getHours();
+      const name = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+      document.getElementById('greeting-text').textContent = `${name}!`;
+    }
+
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // ── Quotes ────────────────────────────────────────────────────────────────
+    const quotes = [
+      { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
+      { text: "It does not matter how slowly you go as long as you do not stop.", author: "Confucius" },
+      { text: "Our greatest glory is not in never falling, but in rising every time we fall.", author: "Confucius" },
+      { text: "Believe you can and you're halfway there.", author: "Theodore Roosevelt" },
+      { text: "Act as if what you do makes a difference. It does.", author: "William James" },
+      { text: "Success is not final, failure is not fatal: it is the courage to continue that counts.", author: "Winston Churchill" },
+      { text: "You are never too old to set another goal or to dream a new dream.", author: "C.S. Lewis" },
+      { text: "In the middle of every difficulty lies opportunity.", author: "Albert Einstein" },
+      { text: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
+      { text: "Don't watch the clock; do what it does. Keep going.", author: "Sam Levenson" },
+    ];
+
+    let quoteIndex = Math.floor(Math.random() * quotes.length);
+
+    function showQuote() {
+      const q = quotes[quoteIndex];
+      document.getElementById('quote-text').textContent = `"${q.text}"`;
+      document.getElementById('quote-author').textContent = `— ${q.author}`;
+    }
+
+    function nextQuote() {
+      quoteIndex = (quoteIndex + 1) % quotes.length;
+      showQuote();
+    }
+
+    showQuote();
+
+    // ── To-Do ─────────────────────────────────────────────────────────────────
+    let todos = JSON.parse(localStorage.getItem('dashboard-todos') || '[]');
+
+    function saveTodos() {
+      localStorage.setItem('dashboard-todos', JSON.stringify(todos));
+    }
+
+    function renderTodos() {
+      const list = document.getElementById('todo-list');
+      const empty = document.getElementById('empty-state');
+      list.innerHTML = '';
+
+      if (todos.length === 0) {
+        empty.style.display = 'block';
+        return;
+      }
+      empty.style.display = 'none';
+
+      todos.forEach((todo, i) => {
+        const li = document.createElement('li');
+        li.className = 'todo-item' + (todo.done ? ' done' : '');
+
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = todo.done;
+        cb.onchange = () => { todos[i].done = cb.checked; saveTodos(); renderTodos(); };
+
+        const label = document.createElement('span');
+        label.className = 'todo-label';
+        label.textContent = todo.text;
+
+        const del = document.createElement('button');
+        del.className = 'todo-delete';
+        del.textContent = '×';
+        del.title = 'Delete';
+        del.onclick = () => { todos.splice(i, 1); saveTodos(); renderTodos(); };
+
+        li.append(cb, label, del);
+        list.appendChild(li);
+      });
+    }
+
+    function addTodo() {
+      const input = document.getElementById('todo-input');
+      const text = input.value.trim();
+      if (!text) return;
+      todos.unshift({ text, done: false });
+      saveTodos();
+      renderTodos();
+      input.value = '';
+      input.focus();
+    }
+
+    renderTodos();
+  </script>
+</body>
+</html>
